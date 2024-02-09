@@ -1,0 +1,35 @@
+<form id="transactionForm">
+{% csrf_token %}       
+          <div class="form-group row">
+        <input type="hidden" name="id" value="{{transaction.id}}">
+        <div class="col-md-6">
+            <label for="date">Date:</label>
+            <input type="date" name='date' class="form-control" id="date" value="{{transaction.form.date}}" required>
+        </div>
+        <div class="col-md-6">
+        <label for="party" class="control-label">Party:</label>
+        <input type="text" id="name" name="name" value="{{transaction.party.name}}" list="partyList" class="form-control" required>
+        <datalist id="partyList">
+            {% for party in parties %}
+            <option value="{{party.name}}">
+            {% endfor %}
+        </datalist>
+    </div>
+</div>
+<div class="form-group">
+    <label for="description">Description:</label>
+    <textarea class="form-control" name="description" value="{{transaction.description}}" id="description" rows="3" required></textarea>
+</div>
+
+<div class="form-group row">
+    <div class="col-md-6">
+        <label for="debit">Debit Amount:</label>
+        <input type="number" name="debit" class="form-control" value="{{transaction.debit}}" id="debit" min="0" step="0.01" default="0" required>
+    </div>
+    <div class="col-md-6">
+        <label for="credit">Credit Amount:</label>
+        <input type="number" name="credit" class="form-control" value="{{transaction.credit}}" id="credit" min="0" step="0.01" default="0" required>
+    </div>
+</div>
+<button type="submit" class="btn btn-secondary" id="addTransaction">Add to List</button>
+</form>

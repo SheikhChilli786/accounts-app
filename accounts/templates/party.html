@@ -1,0 +1,148 @@
+{% extends 'base.html' %} {% load static %} {% block pageContent %}
+<style>
+    .al-logo {
+        height: 3em;
+        width: 3em;
+        object-fit: scale-down;
+        object-position: center center;
+    }
+</style>
+<section class="py-4">
+    <div class="container"> 
+        <h3 class="fw-bolder text-center">List of Parties</h3>
+        <center>
+            <hr class="bg-primary opacity-100" style="height:3px" width="5%">
+            <button type="button" class="btn btn-primary" id="new_form" >
+  Open Modal
+</button>
+        </center>
+        <div class="card rounded-0 shadow">
+            <div class="card-body">
+                <div class="container-fluid">
+                {% if request.user.is_superuser %}
+                    <div class="text-end mb-3">
+                        <button class="btn btn-sm btn-primary rounded-0 bg-gradient-primary" type="button" id="create_new"><i class="fa fa-plus"></i> Add New</button>
+                    </div>
+                {% endif %}
+                    <table class="display" style="width:100%" id="party-tbl">
+                        {% comment %} <colparty>
+                            <col width="5%">
+                            <col width="35%">
+                            <col width="35%">
+                            <col width="25%">
+                        </colparty> {% endcomment %}
+                        <thead>
+                            <tr>
+                                <th >#</th>
+                                <th >Name</th>
+                                <th >Phone_number</th>
+                                <th >Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for party in parties %}
+                            <tr>
+                                <td>{{ forloop.counter }}</td>
+                                <td>{{ party.name}}</td>
+                                <td>
+                                    <p class="m-0 truncate-1">{{ party.address|safe }}</p>
+                                </td>
+                                <td>
+                                    <div class="dropdown">
+                                        <button class="btn btn-light btn-sm rounded-0 border dropdown-toggle" type="button" id="abtn{{cat.pk}}" data-bs-toggle="dropdown" aria-expanded="false">
+                                          Action
+                                        </button>
+                                        <ul class="dropdown-menu" aria-labelledby="abtn{{party.pk}}">
+                                            {% comment %} <li><a class="dropdown-item view-data" href="javascript:void(0)" data-url="{% url 'view-party-pk' cat.pk %}"><i class="fa fa-eye text-dark"></i> View</a></li> {% endcomment %}
+                                            <li><a class="dropdown-item edit-data" href="javascript:void(0)" data-url="{% url 'manage-party-pk' party.pk %}"><i class="fa fa-edit text-primary"></i> Edit</a></li>
+                                            <li><a class="dropdown-item delete-data" href="javascript:void(0)" data-url="{% url 'delete-party' party.pk %}"><i class="fa fa-trash text-danger"></i> Delete</a></li>
+                                        </ul>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table> 
+                </div>
+            </div>
+        </div>
+    </div> 
+</section>
+{% endblock pageContent %} {% block ScriptBlock %}
+<script>
+    
+    $(function() {
+        $('#new_form').click(function() {
+    var url = "{% url 'manage-form' %}";
+    {% if user_id %}
+        url += '/' + {{ user_id }};
+    {% endif %}
+    form_modal(url);
+});
+
+$('#create_new').click(function() {
+    var url = "{% url 'manage-party-new' %}";
+    {% if user_id %}
+        url += '/' + {{ user_id }};
+    {% endif %}
+    uni_modal("<i class='fa fa-plus'></i> Add New Party", url);
+});
+        {% comment %} $('.view-data').click(function() {
+            uni_modal("<i class='fa fa-th-list'></i> Party Details", $(this).attr('data-url'))
+        }) {% endcomment %}
+        $('.edit-data').click(function() {
+            uni_modal("<i class='fa fa-edit'></i> Edit Party Details", $(this).attr('data-url'))
+        })
+        $('.view_image').click(function() {
+            var img = $(this).attr('data-img-url')
+            $('#viewer_modal #img-viewer-field').attr('src', img)
+            $('#viewer_modal').modal('show')
+        })
+        $('.delete-data').click(function() {
+            _conf("Are you sure to delete this party?", 'delete_party', ["'" + $(this).attr('data-url') + "'"])
+        })
+        $('#party-tbl').find('td, th').addClass('px-2 py-1 align-middle')
+        $('#party-tbl').DataTable({
+            responsive:true
+        })
+
+})
+
+    function delete_party(url) {
+
+        var _this = $('#confirm_modal .modal-body')
+        $('.err-msg').remove();
+        var el = $('<div>')
+        el.addClass("alert alert-danger err-msg")
+        el.hide()
+        start_loader()
+        $.ajax({
+            headers: {
+                "X-CSRFToken": "{{csrf_token}}"
+            },
+            url: url,
+            dataType: 'JSON',
+            error: err => {
+                console.log(err)
+                alert("an error occurred.")
+                end_loader()
+            },
+            success: function(resp) {
+                if (resp.status == 'success') {
+                    location.reload()
+                } else if (!!resp.msg) {
+                    el.html(resp.msg)
+                    _this.prepend(el)
+                    el.show()
+                } else {
+                    el.html("An error occurred")
+                    _this.prepend(el)
+                    el.show()
+                }
+                end_loader()
+            }
+
+        })
+    }
+</script>
+{% endblock ScriptBlock %}
