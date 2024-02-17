@@ -7,8 +7,8 @@ class Party(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
 
     name = models.CharField(max_length=255)
-    phone_number = models.CharField(max_length=255)
-    address = models.CharField(max_length=255)
+    phone_number = models.CharField(max_length=255,blank=True,null=True)
+    address = models.CharField(max_length=255,blank=True,null=True)
     delete_flag = models.IntegerField(default=0)
 
     def __str__(self):
