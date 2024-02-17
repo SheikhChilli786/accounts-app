@@ -13,12 +13,11 @@
         </div>
         <div class="form-group mb-3">
             <label for="phone_number" class="control-label">Phone Number</label>
-            <input type="text" class="form-control rounded-0" name="phone_number" id="phone_number" value="{% if form.data.phone_number %}{{ form.data.phone_number }}{% else %}{{ party.phone_number }}{% endif %}" required=false>
+            <input type="text" class="form-control rounded-0" name="phone_number" id="phone_number" value="{% if form.data.phone_number %}{{ form.data.phone_number }}{% else %}{{ party.phone_number }}{% endif %}" >
         </div>
         <div class="mb-3">
             <label for="address" class="control-label">Address</label>
-            <input id="address" name="address" class="form-control form-control-sm rounded-0" value="{{party.address}}" required=false></input>
-        </div>
+            <textarea rows="3" id="address" name="address" class="form-control form-control-sm rounded-0" >{{party.address}}</textarea>        </div>
         
     </form>
 </div>
@@ -61,7 +60,7 @@
                     } else {
                         el.text("An error occured", 'error');
                         end_loader();
-                        console.err(resp)
+                        console.log(resp)
                     }
                     _this.prepend(el)
                     el.show('slow')

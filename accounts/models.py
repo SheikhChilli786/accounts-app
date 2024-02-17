@@ -15,7 +15,7 @@ class Party(models.Model):
         return f'{self.name}'
 
     class Meta:
-        unique_together = ['user','name', 'phone_number']
+        unique_together = ['user','name']
 
     def get_total_debit(self):
         transactions = self.transaction_set.filter(delete_flag=0)

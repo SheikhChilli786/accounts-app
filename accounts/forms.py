@@ -62,26 +62,13 @@ class SaveParty(forms.ModelForm):
     phone_number = forms.CharField(
         label='Phone Number',
         validators=[pakistan_phone_validator],
+        required=False
     )
     class Meta:
         model = models.Party
         fields = ['user', 'name', 'phone_number', 'address']
 
-    def clean(self):
-        cleaned_data = super().clean()
-        user = cleaned_data.get('user')
-        name = cleaned_data.get('name')
-        phone_number = cleaned_data.get('phone_number')
-
-        # Check if a party with the same name and phone number exists for this user
-        if models.Party.objects.filter(user=user, name=name, phone_number=phone_number).exists():
-            raise forms.ValidationError('Party with the same name and phone number already exists for this user.')
-
-        # Check if there's any party with the same name or phone number for this user
-        if models.Party.objects.filter(user=user).filter(Q(name=name) | Q(phone_number=phone_number)).exists():
-            raise forms.ValidationError('Party with the same name or phone number already exists for this user.')
-
-        return cleaned_data
+    
 
 
 class SaveForm(forms.ModelForm):

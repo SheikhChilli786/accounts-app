@@ -206,7 +206,6 @@
             $('body').removeClass('loading')
         }
         window.form_modal = function($url = ''){
-            console.log($url)
             start_loader()
             $.ajax({
                 url:$url,
@@ -214,7 +213,6 @@
                     alert("An error occured")
                 },
                 success: function(resp){
-                    console.log(resp)
                     if(resp){
                         $('#myModal .modal-body').html(resp)
                         $('#myModal').modal({
