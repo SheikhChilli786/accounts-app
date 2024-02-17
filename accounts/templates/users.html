@@ -4,6 +4,7 @@
         <h3 class="fw-bolder text-center">List of Clients</h3>
         <center>
             <hr class="bg-primary opacity-100" style="height:3px" width="5%">
+           
         </center>
         <div class="card rounded-0 shadow">
             <div class="card-body">
@@ -12,12 +13,12 @@
                         <button class="btn btn-sm btn-primary rounded-0 bg-gradient-primary" type="button" id="create_new"><i class="fa fa-plus"></i> Add New</button>
                     </div>
                     <table class="table table-bordered table-striped" id="user-tbl">
-                        <colgroup>
+                        {% comment %} <colgroup>
                             <col width="5%">
                             <col width="35%">
                             <col width="35%">
                             <col width="25%">
-                        </colgroup>
+                        </colgroup> {% endcomment %}
                         <thead>
                             <tr>
                                 <th class="text-center">#</th>
@@ -30,7 +31,7 @@
                             {% for user in users %}
                             <tr>
                                 <td class="text-center">{{ forloop.counter }}</td>
-                                <td><a style="text-decoration:none; color: black;" href="{% url 'home-client-pk' user.pk %}">{{ user.username}}</a></td>
+                                <td><a style="text-decoration:none; color: black;" href="{% url 'party-list-pk' user.pk %}">{{ user.username}}</a></td>
                                 <td>{{ user.phone_number }}</td>
                                 <td class="text-center">
                                     <div class="dropdown">
@@ -59,6 +60,7 @@
          $('#create_new').click(function() {
             uni_modal("<i class='fa fa-plus'></i> Add New User", "{% url 'manage-user' %}")
         })
+        
         $('.edit-data').click(function() {
             uni_modal("<i class='fa fa-edit'></i> Edit User Details", $(this).attr('data-url'))
         })
@@ -73,14 +75,18 @@
         $('#user-tbl').find('td, th').addClass('px-2 py-1 align-middle')
         
         $('#user-tbl').DataTable({
-            dom: 'lfrtip',
-            buttons: [
-                'print'
+            responsive: {
+                    details: {
+                        type: 'column',
+                        target: 0
+                    }
+                },
+            columnDefs: [
+                { orderable:false, targets: [-1] },
+                { responsivePriority: 1, targets: -1 },
+                { responsivePriority: 2, targets: 1 },
+                { responsivePriority: 3, targets: 0 },
             ],
-            columnDefs: [{
-                orderable: false,
-                targets: [2]
-            }],
             lengthMenu: [
                 [25, 50, 100, -1],
                 [25, 50, 100, "All"]
@@ -89,7 +95,7 @@
     })
 
     function delete_user(url) {
-
+        console.log(url)
         var _this = $('#confirm_modal .modal-body')
         $('.err-msg').remove();
         var el = $('<div>')

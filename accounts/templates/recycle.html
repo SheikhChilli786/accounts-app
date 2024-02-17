@@ -1,0 +1,354 @@
+{% extends 'base.html' %} {% load static %} {% block pageContent %} {% load customfilter %}
+<section class="py-4">
+    <div class="container"> 
+        <h3 class="fw-bolder text-center">List of Parties</h3>
+        <center>
+            <hr class="bg-primary opacity-100" style="height:3px" width="5%">
+        </center>
+        <div class="card rounded-0 shadow">
+            <div class="card-body">
+                <div class="container-fluid">
+                
+                    <table class="display cell-border" class="table table-bordered table-striped" style="width:100%" id="party-tbl">
+                        <thead>
+                            <tr>
+                                <th >#</th>
+                                <th >client</th>
+                                <th >Name</th>
+                                <th >address</th>
+                                <th >Phone_number</th>
+                                <th >Balance</th>
+                                <th >Action</th>
+
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for party in parties %}
+                            <tr>
+                                <td>{{ forloop.counter }}</td>
+                                <td>{{ party.user.username}}</td>
+                                <td>{{ party.name}}</td>
+                                <td>{{ party.address}}</td>
+                                <td>
+                                    <p class="m-0 truncate-1">{{ party.phone_number |safe }}</p>
+                                </td>
+                                <td>
+                                    {% with balance=party.get_balance %}
+                                        {% if balance > 0 %}
+                                            <p class="m-0 truncate-1 text-success">{{ balance }}</p>
+                                        {% elif balance < 0 %}
+                                            <p class="m-0 truncate-1 text-danger">{{ balance |abs }}</p>
+                                        {% else %}
+                                            <p class="m-0 truncate-1">{{ balance }}</p>
+                                        {% endif %}
+                                    {% endwith %}
+                                </td>
+
+                                <td>
+                                {% if request.user.is_superuser %}
+                                
+                                    <div class="dropdown">
+                                        <button class="btn btn-light btn-sm rounded-0 border dropdown-toggle" type="button" id="abtn{{cat.pk}}" data-bs-toggle="dropdown" aria-expanded="false">
+                                          Action
+                                        </button>
+                                        <ul class="dropdown-menu" aria-labelledby="abtn{{party.pk}}">
+                                            <li><a class="dropdown-item view-data-trans" href="{% url 'view-transactions' party.pk %}"><i class="fa fa-eye text-dark"></i>View Transactions</a></li>
+                                            <li><a class="dropdown-item restore-data" href="javascript:void(0)" data-url="{% url 'restore-party' party.pk %}"><i class="fa fa-edit text-primary"></i> Restore</a></li>
+                                            <li><a class="dropdown-item delete-data" href="javascript:void(0)" data-url="{% url 'delete-party' party.pk %}"><i class="fa fa-trash text-danger"></i> Delete</a></li>
+                                        </ul>
+                                    </div>
+                                
+                                {% else %}
+                                    <button ><a class="dropdown-item view-data"  href="{% url 'view-transactions' party.pk %}"></i> Transactions</a></button>
+                                {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table> 
+                </div>
+            </div>
+        </div>
+    </div> 
+</section>
+<section class="py-4">
+    <div class="container"> 
+        <h3 class="fw-bolder text-center">List of Clients</h3>
+        <center>
+            <hr class="bg-primary opacity-100" style="height:3px" width="5%">
+        </center>
+        <div class="card rounded-0 shadow">
+            <div class="card-body">
+                <div class="container-fluid">
+                
+                    <table class="display cell-border" class="table table-bordered table-striped" style="width:100%" id="user-tbl">
+                        <thead>
+                            <tr>
+                                <th >#</th>
+                                <th >username</th>
+                                <th >Phone_number</th>
+                                <th >Action</th>
+
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for user in users %}
+                            <tr>
+                                <td>{{ forloop.counter }}</td>
+                                <td>{{ user.username}}</td>
+                                <td>
+                                    <p class="m-0 truncate-1">{{ user.phone_number |safe }}</p>
+                                </td>
+                                
+
+                                <td>
+                                
+                                    <div class="dropdown">
+                                        <button class="btn btn-light btn-sm rounded-0 border dropdown-toggle" type="button" id="abtn{{cat.pk}}" data-bs-toggle="dropdown" aria-expanded="false">
+                                          Action
+                                        </button>
+                                        <ul class="dropdown-menu" aria-labelledby="abtn{{user.pk}}">
+                                            <li><a class="dropdown-item restore-data" href="javascript:void(0)" data-url="{% url 'restore-user' user.pk %}"><i class="fa fa-edit text-primary"></i> Restore</a></li>
+                                            <li><a class="dropdown-item delete-data" href="javascript:void(0)" data-url="{% url 'delete-user' user.pk %}"><i class="fa fa-trash text-danger"></i> Delete</a></li>
+                                        </ul>
+                                    </div>
+                                
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table> 
+                </div>
+            </div>
+        </div>
+    </div> 
+</section>
+<section class="py-4">
+    <div class="container"> 
+        <h3 class="fw-bolder text-center">List of Transactions</h3>
+        <center>
+            <hr class="bg-primary opacity-100" style="height:3px" width="5%">
+        </center>
+        <div class="card rounded-0 shadow">
+            <div class="card-body">
+                <div class="container-fluid">
+                
+                    <table class="display cell-border" class="table table-bordered table-striped" style="width:100%" id="transaction-tbl">
+                        <thead>
+                            <tr>
+                                <th >#</th>
+                                <th >date</th>
+                                <th >user</th>
+                                <th >party</th>
+                                <th >description</th>
+                                <th >debit</th>
+                                <th >credit</th>
+                                <th >action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for transaction in transactions %}
+                            <tr>
+                                <td>{{ forloop.counter }}</td>
+                                <td>{{ transaction.form.created_at }}</td>
+                                <td>{{ transaction.party.user.username }}</td>
+                                <td>{{ transaction.party}}</td>
+                                <td>{{ transaction.description}}</td>
+                                <td>{{ transaction.debit}}</td>
+                                <td>{{ transaction.credit}}</td>
+
+                                <td>
+                                    <div class="dropdown">
+                                        <button class="btn btn-light btn-sm rounded-0 border dropdown-toggle" type="button" id="abtn{{cat.pk}}" data-bs-toggle="dropdown" aria-expanded="false">
+                                          Action
+                                        </button>
+                                         <ul class="dropdown-menu" aria-labelledby="abtn{{transaction.pk}}">
+                                            <li><a class="dropdown-item restore-data" href="javascript:void(0)" data-url="{% url 'restore-transaction' transaction.pk %}"><i class="fa fa-edit text-primary"></i> Restore</a></li>
+                                            <li><a class="dropdown-item delete-data" href="javascript:void(0)" data-url="{% url 'delete-transaction' transaction.pk %}"><i class="fa fa-trash text-danger"></i> Delete</a></li>
+                                        </ul> 
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table> 
+                </div>
+            </div>
+        </div>
+    </div> 
+</section>
+{% endblock pageContent %} {% block ScriptBlock %}
+<script>
+$(function() {
+                    $('.delete-data').click(function() {
+                        _conf("Are you sure to delete this data permanently?", 'deleteData', ["'" + $(this).attr('data-url') + "'"])
+                    });
+                    $('.restore-data').click(function() {
+                        _conf("Are you sure to restore this data?", 'restoreData', ["'" + $(this).attr('data-url') + "'"])
+                    });
+var dataTable_party = $('#party-tbl').DataTable({
+            responsive: {
+                details: {
+                    type: 'column',
+                    target: 'tr'
+                }
+            },
+            columnDefs: [
+                {
+                    orderable: false,
+                    targets: [1,2,3,4]
+                },
+                { "width": "120px", "targets": 1 }, // Set width for the first column
+                { "width": "70px", "targets": 4 },   // Set width for the third column
+                { "width": "70px", "targets": 5 },   // Set width for the third column
+                { "width": "40px", "targets": 6 },
+                { responsivePriority: 1, targets: 1 },
+                { responsivePriority: 3, targets: 2 },
+                { responsivePriority: 2, targets: -1 },
+                { responsivePriority: 4, targets: 4 },
+                {
+                    target: 0,
+                    visible: false,
+                    searchable: false
+                },
+            ],
+            order: [[0, 'asc']],
+            lengthMenu: [
+                [25, 50, 100, -1],
+                [25, 50, 100, "All"]
+            ],
+        });
+        
+        $('#user-tbl').DataTable({
+            responsive: {
+                    details: {
+                        type: 'column',
+                        target: 'tr'
+                    }
+                },
+            columnDefs: [
+                { orderable:false, targets: ['_all'] },
+                { responsivePriority: 1, targets: 1 },
+                { responsivePriority: 2, targets: -1 },
+                {
+                    target: 0,
+                    visible: false,
+                    searchable: false
+                },
+                { "width": "120px", "targets": 2 }, // Set width for the first column
+                { "width": "40px", "targets": 3 },   // Set width for the third column
+            ],
+            lengthMenu: [
+                [25, 50, 100, -1],
+                [25, 50, 100, "All"]
+            ],
+        })
+
+        $('#transaction-tbl').DataTable({
+                        responsive: {
+                            details: {
+                                type: 'column',
+                                target: 'tr'
+                            }
+                        },
+                        
+                        columnDefs: [
+                            {
+                                orderable: false,
+                                targets: [1,2,3,4,5,6,7]
+                            },
+                            {
+                                target: [0],
+                                visible: false,
+                                searchable: false
+                            },
+                            { "width": "100px", "targets": 1 }, // Set width for the first column
+                            { "width": "170px", "targets": 2 }, // Set width for the first column
+                            { "width": "200px", "targets": 3 }, // Set width for the first column
+                            { "width": "70px", "targets": 5 }, // Set width for the second column
+                            { "width": "50px", "targets": 7 },   // Set width for the third column
+                            { "width": "70px", "targets": 6 },
+                            { responsivePriority: 1, targets: 1 },
+                            { responsivePriority: 3, targets: 2 },
+                            { responsivePriority: 2, targets: -1 },
+                        ],
+                        order: [[0, 'desc']],
+                    })
+})
+                    
+         function deleteData(url) {
+                console.log(url)
+                var _this = $('#confirm_modal .modal-body')
+                $('.err-msg').remove();
+                var el = $('<div>')
+                el.addClass("alert alert-danger err-msg")
+                el.hide()
+                start_loader()
+                $.ajax({
+                    headers: {
+                        "X-CSRFToken": "{{csrf_token}}"
+                    },
+                    url: url,
+                    dataType: 'JSON',
+                    error: err => {
+                        console.log(err)
+                        alert("an error occurred.")
+                        end_loader()
+                    },
+                    success: function(resp) {
+                        if (resp.status == 'success') {
+                            location.reload()
+                        } else if (!!resp.msg) {
+                            el.html(resp.msg)
+                            _this.prepend(el)
+                            el.show()
+                        } else {
+                            el.html("An error occurred")
+                            _this.prepend(el)
+                            el.show()
+                        }
+                        end_loader()
+                    }
+
+                })
+                        
+            } 
+         function restoreData(url) {
+                console.log(url)
+                var _this = $('#confirm_modal .modal-body')
+                $('.err-msg').remove();
+                var el = $('<div>')
+                el.addClass("alert alert-danger err-msg")
+                el.hide()
+                start_loader()
+                $.ajax({
+                    headers: {
+                        "X-CSRFToken": "{{csrf_token}}"
+                    },
+                    url: url,
+                    dataType: 'JSON',
+                    error: err => {
+                        console.log(err)
+                        alert("an error occurred.")
+                        end_loader()
+                    },
+                    success: function(resp) {
+                        if (resp.status == 'success') {
+                            location.reload()
+                        } else if (!!resp.msg) {
+                            el.html(resp.msg)
+                            _this.prepend(el)
+                            el.show()
+                        } else {
+                            el.html("An error occurred")
+                            _this.prepend(el)
+                            el.show()
+                        }
+                        end_loader()
+                    }
+
+                })
+                        
+            } 
+</script>
+{% endblock ScriptBlock %}

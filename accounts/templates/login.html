@@ -201,7 +201,7 @@
                 success: function (resp) {
                     if (typeof resp == 'object' && resp.status == 'success') {
                         el.removeClass("alert alert-danger err-msg")
-                        location.href = "{% url 'home-page' %}"
+                        location.href = "{% url 'users-list' %}"
                     } else if (resp.status == 'failed' && !!resp.msg) {
                         el.text(resp.msg)
                     } else {

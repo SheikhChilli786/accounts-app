@@ -1,4 +1,4 @@
-{% extends 'base.html' %} {% load static %} {% block pageContent %}
+{% extends 'base.html' %} {% load static %} {% block pageContent %} {% load customfilter %}
 <style>
     .al-logo {
         height: 3em;
@@ -12,31 +12,30 @@
         <h3 class="fw-bolder text-center">List of Parties</h3>
         <center>
             <hr class="bg-primary opacity-100" style="height:3px" width="5%">
+             {% if request.user.is_superuser %}
             <button type="button" class="btn btn-primary" id="new_form" >
-  Open Modal
-</button>
+                Manage Transactions
+            </button>
+            {% endif %}
         </center>
         <div class="card rounded-0 shadow">
             <div class="card-body">
                 <div class="container-fluid">
                 {% if request.user.is_superuser %}
                     <div class="text-end mb-3">
-                        <button class="btn btn-sm btn-primary rounded-0 bg-gradient-primary" type="button" id="create_new"><i class="fa fa-plus"></i> Add New</button>
+                        <button class="btn btn-sm btn-primary rounded-0 bg-gradient-primary" type="button" id="create_new"><i class="fa fa-plus"></i> Add New Party</button>
                     </div>
                 {% endif %}
-                    <table class="display" style="width:100%" id="party-tbl">
-                        {% comment %} <colparty>
-                            <col width="5%">
-                            <col width="35%">
-                            <col width="35%">
-                            <col width="25%">
-                        </colparty> {% endcomment %}
+                    <table class="display cell-border" class="table table-bordered table-striped" style="width:100%" id="party-tbl">
                         <thead>
                             <tr>
                                 <th >#</th>
                                 <th >Name</th>
+                                <th >Address</th>
                                 <th >Phone_number</th>
+                                <th >Balance</th>
                                 <th >Action</th>
+
                             </tr>
                         </thead>
                         <tbody>
@@ -44,20 +43,39 @@
                             <tr>
                                 <td>{{ forloop.counter }}</td>
                                 <td>{{ party.name}}</td>
+                                <td>{{ party.address}}</td>
                                 <td>
-                                    <p class="m-0 truncate-1">{{ party.address|safe }}</p>
+                                    <p class="m-0 truncate-1">{{ party.phone_number |safe }}</p>
                                 </td>
                                 <td>
+                                    {% with balance=party.get_balance %}
+                                        {% if balance > 0 %}
+                                            <p class="m-0 truncate-1 text-success">{{ balance }}</p>
+                                        {% elif balance < 0 %}
+                                            <p class="m-0 truncate-1 text-danger">{{ balance |abs }}</p>
+                                        {% else %}
+                                            <p class="m-0 truncate-1">{{ balance }}</p>
+                                        {% endif %}
+                                    {% endwith %}
+                                </td>
+
+                                <td>
+                                {% if request.user.is_superuser %}
+                                
                                     <div class="dropdown">
                                         <button class="btn btn-light btn-sm rounded-0 border dropdown-toggle" type="button" id="abtn{{cat.pk}}" data-bs-toggle="dropdown" aria-expanded="false">
                                           Action
                                         </button>
                                         <ul class="dropdown-menu" aria-labelledby="abtn{{party.pk}}">
-                                            {% comment %} <li><a class="dropdown-item view-data" href="javascript:void(0)" data-url="{% url 'view-party-pk' cat.pk %}"><i class="fa fa-eye text-dark"></i> View</a></li> {% endcomment %}
+                                            <li><a class="dropdown-item view-data-trans" href="{% url 'view-transactions' party.pk %}"><i class="fa fa-eye text-dark"></i>View Transactions</a></li>
                                             <li><a class="dropdown-item edit-data" href="javascript:void(0)" data-url="{% url 'manage-party-pk' party.pk %}"><i class="fa fa-edit text-primary"></i> Edit</a></li>
                                             <li><a class="dropdown-item delete-data" href="javascript:void(0)" data-url="{% url 'delete-party' party.pk %}"><i class="fa fa-trash text-danger"></i> Delete</a></li>
                                         </ul>
                                     </div>
+                                
+                                {% else %}
+                                    <button ><a class="dropdown-item view-data"  href="{% url 'view-transactions' party.pk %}"></i> Transactions</a></button>
+                                {% endif %}
                                 </td>
                             </tr>
                             {% endfor %}
@@ -72,24 +90,15 @@
 <script>
     
     $(function() {
-        $('#new_form').click(function() {
-    var url = "{% url 'manage-form' %}";
-    {% if user_id %}
-        url += '/' + {{ user_id }};
-    {% endif %}
-    form_modal(url);
-});
+         $('#new_form').click(function(){
+            form_modal("{% url 'manage-transaction' user_id %}")
+        })
+        $('#create_new').click(function() {
+            uni_modal("<i class='fa fa-plus'></i> Add New Party", "{% url 'manage-party-new' user_id %}")
+        })
+            // Attach click event to the view-data link
 
-$('#create_new').click(function() {
-    var url = "{% url 'manage-party-new' %}";
-    {% if user_id %}
-        url += '/' + {{ user_id }};
-    {% endif %}
-    uni_modal("<i class='fa fa-plus'></i> Add New Party", url);
-});
-        {% comment %} $('.view-data').click(function() {
-            uni_modal("<i class='fa fa-th-list'></i> Party Details", $(this).attr('data-url'))
-        }) {% endcomment %}
+
         $('.edit-data').click(function() {
             uni_modal("<i class='fa fa-edit'></i> Edit Party Details", $(this).attr('data-url'))
         })
@@ -102,9 +111,34 @@ $('#create_new').click(function() {
             _conf("Are you sure to delete this party?", 'delete_party', ["'" + $(this).attr('data-url') + "'"])
         })
         $('#party-tbl').find('td, th').addClass('px-2 py-1 align-middle')
-        $('#party-tbl').DataTable({
-            responsive:true
+        var dataTable = $('#party-tbl').DataTable({
+            responsive: {
+                details: {
+                    type: 'column',
+                    target: 'tr'
+                }
+            },
+            columnDefs: [
+                {
+                    orderable: false,
+                    targets: [1,2,3,4,5]
+                },
+                { "width": "200px", "targets": 3 }, // Set width for the first column
+                { "width": "120px", "targets": 3 }, // Set width for the first column
+                { "width": "70px", "targets": 4 },   // Set width for the third column
+                { "width": "40px", "targets": 5 },
+                { responsivePriority: 1, targets: 1 },
+                { responsivePriority: 2, targets: -1 },
+            ],
+            order: [[0, 'asc']],
+            lengthMenu: [
+                [25, 50, 100, -1],
+                [25, 50, 100, "All"]
+            ],
         })
+        var hideColumnIndex = 0;
+        var column = dataTable.column(hideColumnIndex);
+        column.visible(false);
 
 })
 

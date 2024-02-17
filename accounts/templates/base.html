@@ -5,7 +5,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     {% if page_title %}
     <title>{{page_title}} | {{system_name}}</title>
     {% else %}
@@ -14,20 +14,22 @@
     <link rel="shortcut icon" href="{% static 'assets/default/img/logo.jpg' %}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css" integrity="sha512-KfkfwYDsLkIlwQp6LFnl8zNdLGxu9YAA1QvwINks4PhcElQSvqcyVLLD9aMhXd13uQjoXtEKNosOWaZqXgel0g==" crossorigin="anonymous" referrerpolicy="no-referrer"/>
     <link rel="stylesheet" href="{% static 'assets/bootstrap/css/bootstrap.min.css' %}">
-    {% comment %} <link rel="stylesheet" href="{% static 'assets/DataTables/datatables.min.css' %}"> {% endcomment %}
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
-    <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.dataTables.min.css">
-    <link rel="stylesheet" href="{% static 'assets/select2/dist/css/select2.min.css' %}">
     <link rel="stylesheet" href="{% static 'assets/default/css/style.css' %}">
-    {% comment %} <link rel="stylesheet" href="{% static 'assets/DataTables/jQuery-3.7.0/jquery-3.7.0.js' %}"> {% endcomment %}
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.6.0/js/bootstrap.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/js/all.min.js" integrity="sha512-6PM0qYu5KExuNcKt5bURAoT6KCThUmHRewN3zUFNaoI6Di7XJPTMoT6K0nsagZKk2OB4L7E3q1uQKHNHd4stIQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <link rel="stylesheet" href="{% static 'assets/select2/dist/css/select2.min.css' %}">
+    {% comment %} css regarding datatables {% endcomment %}
+    <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.dataTables.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.dataTables.min.css">
+    {% comment %} scripts regarding data tables {% endcomment %}
     <script src="https://code.jquery.com/jquery-3.7.0.js"></script>
     <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.print.min.js"></script>
     <script src="https://cdn.datatables.net/responsive/2.5.0/js/dataTables.responsive.min.js" ></script>
+    {% comment %}  {% endcomment %}
+    <script src="https://cdn.datatables.net/rowgroup/1.4.1/js/dataTables.rowGroup.min.js" ></script>
     <script src="{% static 'assets/bootstrap/js/popper.min.js' %}"></script>
-    {% comment %} <script src="{% static 'assets/DataTables/datatables.min.js' %}"></script> {% endcomment %}
     <script src="{% static 'assets/select2/dist/js/select2.min.js' %}"></script>
     <script src="{% static 'assets/bootstrap/js/bootstrap.min.js' %}"></script>
     <script type="text/javascript" src="{% static 'assets/default/js/script.js' %}"></script>
@@ -113,7 +115,7 @@
     </main>
     {% block ScriptBlock %} {% endblock ScriptBlock %}
 
-<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" c aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg" role="document">
     <div class="modal-content">
       <div class="modal-header">
@@ -125,15 +127,14 @@
       <div class="modal-body">
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-primary" id="submitTransactions">Submit</button>
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
       </div>
     </div>
   </div>
 </div>
 
-    <div class="modal fade" id="uni_modal" role='dialog'>
-        <div class="modal-dialog modal-md modal-dialog-centered modal-dialog-scrollable" role="document">
+    <div class="modal fade" id="uni_modal" tabindex="-1" role='dialog' aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg" role="document">
             <div class="modal-content rounded-0">
                 <div class="modal-header">
                     <h5 class="modal-title"></h5>
@@ -150,11 +151,11 @@
             </div>
         </div>
     </div>
-        <div class="modal fade" id="confirm_modal" role='dialog'>
-            <div class="modal-dialog modal-md modal-dialog-centered" role="document">
+        <div class="modal fade" id="confirm_modal" aria-hidden="true" tabindex="-1" role='dialog' aria-labelledby="confirmModalLabel">
+            <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg" role="document">
                 <div class="modal-content rounded-0">
                     <div class="modal-header">
-                        <h5 class="modal-title">Confirmation</h5>
+                        <h5 class="modal-title" id="confirmModalLabel">Confirmation</h5>
                     </div>
                     <div class="modal-body">
                         <div id="delete_content"></div>
@@ -238,11 +239,7 @@
                     if(resp){
                         $('#uni_modal .modal-title').html($title)
                         $('#uni_modal .modal-body').html(resp)
-                        if($size != ''){
-                            $('#uni_modal .modal_dialog').addClass($size + ' modal-dialog-centered')
-                        }else{
-                            $('#uni_modal .modal-dialog').removeAttr("class").addClass("modal-dialog modal-md modal-dialog-centered")
-                        }
+                        
                         $('#uni_modal').modal({
                             backdrop:'static',
                             keyboard:false,

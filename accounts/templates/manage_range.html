@@ -1,0 +1,16 @@
+<div class="container-fluid">
+    <form id="range-form" method="post" action="{% url 'view-transactions' %}">
+        {% csrf_token %}
+        <div class="form-group row">
+        <input type="hidden" name="id" value="{{party_id}}">
+            <div class="col-md-6">
+                <label for="date">From:</label>
+                <input type="date" name='date_from' class="form-control" id="date_from" required>
+            </div>
+            <div class="col-md-6">
+                <label for="date">To:</label>
+                <input type="date" name='date_to' class="form-control" id="date_to" required>
+            </div>
+        </div>
+    </form>
+</div>
