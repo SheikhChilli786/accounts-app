@@ -1,2 +1,2 @@
 release: python manage.py migrate
-web gunicorn storefron.wsgi
+web gunicorn accounts_site.wsgi
