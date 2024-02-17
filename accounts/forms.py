@@ -62,7 +62,6 @@ class SaveParty(forms.ModelForm):
     phone_number = forms.CharField(
         label='Phone Number',
         validators=[pakistan_phone_validator],
-        required=True
     )
     class Meta:
         model = models.Party
