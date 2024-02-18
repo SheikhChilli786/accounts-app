@@ -194,7 +194,7 @@
             var credit = $('#credit').val();
 
             // Check if every field is filled (except for credit or debit)
-            if (name.trim() !== "" && description.trim() !== "") {
+            if (name.trim() !== "") {
                 // Check if either debit or credit has a value greater than 0
                 if ((debit.trim() !== "" && parseFloat(debit) > 0) || (credit.trim() !== "" && parseFloat(credit) > 0)) {
                     // Clear errors and remove border from "Credit" and "Debit" fields
@@ -324,8 +324,11 @@
                             { responsivePriority: 1, targets: 1 },
                             { responsivePriority: 2, targets: -1 },
                         ],
-                        order: [[1, 'desc']],
-                        paging:false
+                        order: [
+                            [1, 'desc'], // Sorting by target 1 in descending order
+                            [0, 'asc']   // Then sorting by target 0 in ascending order
+                        ],
+                        paging:true
                     })
                     var hideColumnIndex = 0;
                     var column = dataTable.column(hideColumnIndex);
