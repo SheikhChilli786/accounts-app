@@ -132,3 +132,4 @@ LOGIN_URL = '/login'
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 SESSION_COOKIE_AGE = 1800
 SESSION_SAVE_EVERY_REQUEST = True
+LOGOUT_REDIRECT_URL = "/" 
