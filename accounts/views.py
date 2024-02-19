@@ -358,6 +358,8 @@ def save_transaction(request):
         user_id = post.get('user_id','') 
         date = post.get('date', '')
         party = post.get('name', '')
+        debit = post.get('debit','')
+        credit = post.get('credit','')
         party = get_object_or_404(models.Party, name=party,user__id=user_id)
         form_obj, created = models.Form.objects.get_or_create(created_at=date)
         if id != '':
@@ -370,6 +372,10 @@ def save_transaction(request):
             transaction_instance = form.save(commit=False)
             transaction_instance.party = party
             transaction_instance.form = form_obj
+            if debit == '':
+                transaction_instance.debit = 0
+            if credit == '':
+                transaction_instance.credit = 0
             transaction_instance.save()
         
            
@@ -390,7 +396,6 @@ def transaction_list(request):
         if request.user.is_superuser:
             selected_date = request.GET.get('date')
             user_id = request.GET.get('user_id')
-            print(user_id)
             if selected_date == '2000-01-01':
                 transactions = models.Transaction.objects.select_related('party').filter(delete_flag=0,party__delete_flag=0,party__user__id = user_id)
             else:

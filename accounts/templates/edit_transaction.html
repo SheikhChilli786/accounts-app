@@ -43,6 +43,7 @@
         // Disable credit input if debit value is greater than 0
         debitInput.on('input', function () {
             if (parseFloat(debitInput.val()) > 0) {
+                creditInput.val(0)
                 creditInput.prop('disabled', true);
             } else {
                 creditInput.prop('disabled', false);
@@ -52,6 +53,7 @@
         // Disable debit input if credit value is greater than 0
         creditInput.on('input', function () {
             if (parseFloat(creditInput.val()) > 0) {
+                debitInput.val(0)
                 debitInput.prop('disabled', true);
             } else {
                 debitInput.prop('disabled', false);
@@ -68,6 +70,8 @@
 
      $('#transaction').submit(function (e) {
             var date = $('#date').val()
+            console.log(debitInput.val())
+            console.log(creditInput.val())
             e.preventDefault()
             var _this = $(this)
             $('.err-msg').remove();
