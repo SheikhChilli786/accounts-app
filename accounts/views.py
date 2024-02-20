@@ -397,9 +397,9 @@ def transaction_list(request):
             selected_date = request.GET.get('date')
             user_id = request.GET.get('user_id')
             if selected_date == '2000-01-01':
-                transactions = models.Transaction.objects.select_related('party').filter(delete_flag=0,party__delete_flag=0,party__user__id = user_id)
+                transactions = models.Transaction.objects.select_related('party__user').filter(delete_flag=0,party__delete_flag=0,party__user__id = user_id)
             else:
-                transactions = models.Transaction.objects.select_related('party').filter(delete_flag=0,party__delete_flag=0,form__created_at=selected_date,party__user__id = user_id)
+                transactions = models.Transaction.objects.select_related('party__user').filter(delete_flag=0,party__delete_flag=0,form__created_at=selected_date,party__user__id = user_id)
             transaction_data = [{'party': transaction.party.name,
                                 'description': transaction.description,
                                 'user': transaction.party.user.username,
