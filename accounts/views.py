@@ -1,13 +1,10 @@
-from django.shortcuts import render
-from django.shortcuts import redirect,render 
 import json 
-from django.http import JsonResponse 
-from django.contrib import messages 
-from django .http import HttpResponse
 from . import models,forms
+from django.http import JsonResponse ,HttpResponse
+from django.shortcuts import redirect,render , get_object_or_404
+from django.contrib import messages 
 from django.contrib.auth import update_session_auth_hash,logout,authenticate,login,get_user_model
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import get_object_or_404
 from datetime import datetime
 
 User = get_user_model()

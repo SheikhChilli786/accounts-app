@@ -354,7 +354,7 @@
         }
         
         // Set the cursor on the name field when modal is opened
-        $('#myModal').on('shown.bs.modal', function () {
+        $('#myModal').off('shown.bs.modal').on('shown.bs.modal', function () {
             $('#date').val(localStorage.getItem('date'))
              getDateList()
             {% comment %} $('#name').focus(); {% endcomment %}
