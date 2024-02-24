@@ -336,7 +336,7 @@
                     var hide2ColumnIndex = 1;
                     var column2 = dataTable.column(hide2ColumnIndex);
                     column2.visible(false);
-                    $('#transactionList').on('click', '.edit-data-transaction', function() {
+                    $('#transactionList').off('click', '.edit-data-transaction').on('click', '.edit-data-transaction', function() {
                         $('#myModal').modal('hide');
                         uni_modal("<i class='fa fa-edit'></i> Edit Details", $(this).attr('data-url'));
 
