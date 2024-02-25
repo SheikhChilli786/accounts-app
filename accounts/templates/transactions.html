@@ -88,7 +88,7 @@
                                     var toDate = $('#date_to').val();
                                     var recentBalanceValue = recentBalance.text();
                                     $(win.document.body).find('h4').addClass('your-custom-class');
-                                    $(win.document.body).find('th:eq(0)').css('width', '90px');
+                                    $(win.document.body).find('th:eq(0)').css('width', '120px');
                                     $(win.document.body).find('th:eq(1)').css('width', '70px');
                                     $(win.document.body).find('th:eq(2)').css('width', '70px');
                                     $(win.document.body).find('th:eq(4)').css('width', '120px');
@@ -119,9 +119,9 @@
                     dataSrc: 4
                 },
                 columnDefs: [
-                    { "width": "90px", "targets": 0 }, 
-                    { "width": "70px", "targets": 1 }, 
-                    { "width": "70px", "targets": 2 }, 
+                    { "width": "120px", "targets": 0 }, 
+                    { "width": "80px", "targets": 1 }, 
+                    { "width": "80px", "targets": 2 }, 
                     { "width": "110px", "targets": 4,
                      "render": function (data, type, row) {
                       if (type === 'display') {
