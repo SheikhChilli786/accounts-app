@@ -115,16 +115,18 @@
             layout: {
                     topStart: {
                         buttons: [
-                            {
-                                extend: 'print',
-                                title:'',
-                                autoPrint: true,
-                                customize: function ( win ) {
-                                        $(win.document.body).find('th:last-child').text('Received');
-                                        $(win.document.body).find('td:last-child').empty();
-                                }
-                        
-                            }]  
+                            {% if request.user.is_superuser %}
+                        {
+                            extend: 'print',
+                            title: '',
+                            autoPrint: true,
+                            customize: function (win) {
+                                $(win.document.body).find('th:last-child').text('Received');
+                                $(win.document.body).find('td:last-child').empty();
+                            }
+                        },
+                        {% endif %}
+                        ]  
                 }
             }, 
             responsive: {
