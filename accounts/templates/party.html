@@ -50,9 +50,9 @@
                                 <td>
                                     {% with balance=party.get_balance %}
                                         {% if balance > 0 %}
-                                            <p class="m-0 truncate-1 text-success">{{ balance }}</p>
+                                            <p class="m-0 truncate-1 text-success">{{ balance }}(+)</p>
                                         {% elif balance < 0 %}
-                                            <p class="m-0 truncate-1 text-danger">{{ balance | abs }}</p>
+                                            <p class="m-0 truncate-1 text-danger">{{ balance | abs }}(-)</p>
                                         {% else %}
                                             <p class="m-0 truncate-1">{{ balance }}</p>
                                         {% endif %}
