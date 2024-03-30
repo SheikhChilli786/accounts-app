@@ -43,16 +43,16 @@
                             <tr>
                                 <td>{{ forloop.counter }}</td>
                                 <td>{{ party.name}}</td>
-                                <td>{{ party.address}}</td>
+                                <td>{{ party.address | check_value}}</td>
                                 <td>
-                                    <p class="m-0 truncate-1">{{ party.phone_number |safe }}</p>
+                                    <p class="m-0 truncate-1">{{ party.phone_number | check_value }}</p>
                                 </td>
                                 <td>
                                     {% with balance=party.get_balance %}
                                         {% if balance > 0 %}
                                             <p class="m-0 truncate-1 text-success">{{ balance }}</p>
                                         {% elif balance < 0 %}
-                                            <p class="m-0 truncate-1 text-danger">{{ balance |abs }}</p>
+                                            <p class="m-0 truncate-1 text-danger">{{ balance | abs }}</p>
                                         {% else %}
                                             <p class="m-0 truncate-1">{{ balance }}</p>
                                         {% endif %}
@@ -112,6 +112,21 @@
         })
         $('#party-tbl').find('td, th').addClass('px-2 py-1 align-middle')
         var dataTable = $('#party-tbl').DataTable({
+            layout: {
+                    topStart: {
+                        buttons: [
+                            {
+                                extend: 'print',
+                                title:'',
+                                autoPrint: true,
+                                customize: function ( win ) {
+                                        $(win.document.body).find('th:last-child').text('Received');
+                                        $(win.document.body).find('td:last-child').empty();
+                                }
+                        
+                            }]  
+                }
+            }, 
             responsive: {
                 details: {
                     type: 'column',
@@ -128,6 +143,7 @@
                 { "width": "40px", "targets": 5 },
                 { responsivePriority: 1, targets: 1 },
                 { responsivePriority: 2, targets: -1 },
+                { responsivePriority: 3, targets: 4 },
             ],
             order: [[0, 'asc']],
             lengthMenu: [

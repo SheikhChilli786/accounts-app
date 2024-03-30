@@ -29,3 +29,14 @@ def credit_or_debit(value):
         return f"جمع {abs(value)}"
     else:
         return abs(value)
+    
+@register.filter(name='check_value')
+def check_value(value):
+    """
+    Custom filter to check if a value is a string or zero.
+    If it's a string or zero, return the value itself, otherwise return '-'.
+    """
+    if value == "" or value == 0 or value == None:
+        return "-"
+    else:
+        return value

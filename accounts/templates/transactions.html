@@ -61,9 +61,9 @@
             {% for transaction in transactions %}
             <tr>
                 <td>{{transaction.get_running_balance | credit_or_debit}}</td>
-                <td>{{transaction.credit}}</td>
-                <td>{{transaction.debit}}</td>
-                <td>{{transaction.description}}</td>
+                <td>{{transaction.credit | check_value}}</td>
+                <td>{{transaction.debit | check_value}}</td>
+                <td>{{transaction.description | check_value}}</td>
                 <td>{{transaction.form.created_at}}</td>
                 
             </tr>
