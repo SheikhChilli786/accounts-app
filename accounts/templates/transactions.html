@@ -13,15 +13,18 @@
     <link rel="stylesheet" href="https://cdn.datatables.net/responsive/3.0.0/css/responsive.dataTables.css">
 
     <script src="https://code.jquery.com/jquery-3.7.1.js"></script>
-    <script src="https://cdn.datatables.net/2.0.0/js/dataTables.js"></script>
-    <script src="https://cdn.datatables.net/buttons/3.0.0/js/dataTables.buttons.js"></script>
-    <script src="https://cdn.datatables.net/buttons/3.0.0/js/buttons.dataTables.js"></script>
+    <script src="https://cdn.datatables.net/2.0.3/js/dataTables.js"></script>
+    <script src="https://cdn.datatables.net/buttons/3.0.1/js/dataTables.buttons.js"></script>
+    <script src="https://cdn.datatables.net/buttons/3.0.1/js/buttons.dataTables.js"></script>
     <script src="https://cdn.datatables.net/buttons/3.0.0/js/buttons.print.min.js"></script>
-    <script src="https://cdn.datatables.net/buttons/3.0.0/js/buttons.html5.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/3.0.1/js/buttons.html5.min.js"></script>
     <script src="https://cdn.datatables.net/responsive/3.0.0/js/dataTables.responsive.js"></script>
     <script src="https://cdn.datatables.net/responsive/3.0.0/js/responsive.dataTables.js"></script>
     <script src="https://cdn.datatables.net/rowgroup/1.5.0/js/dataTables.rowGroup.js"></script>
     <script src="https://cdn.datatables.net/rowgroup/1.5.0/js/rowGroup.dataTables.js"></script>
+    <script type="text/javascript" src="{% static 'assets/default/js/vfs_fonts.js' %}"></script>
+
     <style>
        div.container { max-width: 1200px }
        body.dt-print-view table th{
@@ -109,8 +112,64 @@
                                     lastTr.after('<tr><td style="text-align:right; border: 1px solid #000;">'+firstTdValue+'</td></tr>');
 
                                 }
-                        
-                            }]  
+                                
+                            },
+                           {
+                                extend: 'pdfHtml5',
+                                title:"{{party.name}}",
+                                customize: function (doc) {
+                                    var fromDate = $('#date_from').val();
+                                    var toDate = $('#date_to').val();
+                                    var recentBalanceValue = recentBalance.text();
+                                    
+                                    processDoc(doc);
+                                    doc.styles['title'] = {bold:true, fontSize:20,alignment:'center'};
+                                    doc.styles['table'] = {alignment:'center',border:[true,true,true,true]};
+                                    doc.pageMargins = [20,60,20,30];
+                                    doc.content[1].table.widths = Array(doc.content[1].table.body[0].length + 1).join('*').split('');
+                                    if (toDate && fromDate) {
+                                        doc.content.splice( 1, 0, {
+                                            margin: [ 0, 0, 0, 12 ],
+                                            alignment: 'right',
+                                            fontSize:14,
+                                            text: toDate + ' سے '  + fromDate + ' مورخہ' + ' دین' + ' لین'
+                                        } )
+                                    }
+                                     else if (toDate){
+                                        doc.content.splice( 1, 0, {
+                                            margin: [ 0, 0, 0, 12 ],
+                                            alignment: 'right',
+                                            fontSize:14,
+                                            text: toDate +   ' سے '  + ' دین '+' لین ' + ' پہلے'
+                                        } );
+                                    }else if (fromDate) {
+                                        doc.content.splice( 1, 0, {
+                                            margin: [ 0, 0, 0, 12 ],
+                                            alignment: 'right',
+                                            fontSize:14,
+                                            text:    ' تک  '  + ' دین '+' لین ' + ' آخری' + fromDate + ' مورخہ' + ' دین' + ' لین'
+                                        } );
+                                    }else {
+                                        doc.content.splice( 1, 0, {
+                                            margin: [ 0, 0, 0, 12 ],
+                                            alignment: 'right',
+                                            fontSize:14,
+                                            text:     ' دین '+' لین ' + ' تمام' 
+                                        } );
+                                    }
+                                    doc.content.splice( 2, 0, {
+                                            margin: [ 0, 0, 0, 12 ],
+                                            alignment: 'left',
+                                            fontSize:14,
+                                            text:     recentBalanceValue +' : بیلنس ' + ' سابقہ' 
+                                    } );
+                                    var length = doc.content[3].table.body.length
+                                    var lastValue = doc.content[3].table.body[length-1][0].text
+                                    doc.content[3].table.body.push(Array(lastValue,"","","",""))
+                                    doc.content[3].layout = 'lightHorizontalLines'
+                                }
+                            }
+                        ]  
                 }}, 
                 paging:true,
                 order: [[4, 'asc']],
@@ -198,7 +257,32 @@
         );
 
         })
-            
+ function processDoc(doc) {
+    pdfMake.fonts = {
+      Roboto: {
+        normal: 'Roboto-Regular.ttf',
+        bold: 'Roboto-Medium.ttf',
+        italics: 'Roboto-Italic.ttf',
+        bolditalics: 'Roboto-MediumItalic.ttf'
+      },
+      arial: {
+        normal: 'arial.ttf',
+        bold: 'arial.ttf',
+        italics: 'arial.ttf',
+        bolditalics: 'arial.ttf'
+      },
+      noto:{
+        normal: 'noto.ttf',
+        bold: 'noto.ttf',
+        italics: 'noto.ttf',
+        bolditalics: 'noto.ttf'
+      }
+    };
+    // modify the PDF to use a different default font:
+    doc.defaultStyle.font = "noto";
+    var i = 1;
+    }
+   
     
     </script>
 

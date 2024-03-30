@@ -24,9 +24,9 @@ def absolute_value(value):
 @register.filter(name='credit_or_debit')
 def credit_or_debit(value):
     if value < 0:
-        return f"بنام {abs(value)}"
+        return  str(abs(value)) + ' بنام '
     elif value > 0:
-        return f"جمع {abs(value)}"
+        return str(abs(value)) + ' جمع '
     else:
         return abs(value)
     

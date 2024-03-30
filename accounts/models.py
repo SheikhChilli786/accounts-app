@@ -53,7 +53,6 @@ class Transaction(models.Model):
             delete_flag=0,
             party=self.party,
         )
-        print(prior_transactions)
         prior_debit = sum(transaction.debit for transaction in prior_transactions)
         prior_credit = sum(transaction.credit for transaction in prior_transactions)
 
