@@ -134,7 +134,6 @@
                                 },
                                 customize: function (doc) {
                                     doc.styles['table'] = {alignment:'center'};
-                                    console.log(doc.content[0].table.body)
                                     doc.content[0].table.widths = [ '2%',  '25%', '25%', '18%','15%','15%'];
                                     processDoc(doc);
                                    addExtraColumn(doc);
