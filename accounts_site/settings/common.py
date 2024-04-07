@@ -56,7 +56,7 @@ ROOT_URLCONF = 'accounts_site.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR/"templates"],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -127,9 +127,9 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR,'media')
 
 AUTH_USER_MODEL = 'core.User'
-LOGIN_REDIRECT_URL = '/'
-LOGIN_URL = '/login'
+LOGIN_REDIRECT_URL = '/auth/users'
+LOGIN_URL = '/auth/login'
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 SESSION_COOKIE_AGE = 21600
 SESSION_SAVE_EVERY_REQUEST = True
-LOGOUT_REDIRECT_URL = "/" 
+LOGOUT_REDIRECT_URL = "/auth/login" 
