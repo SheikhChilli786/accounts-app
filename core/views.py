@@ -110,44 +110,28 @@ def save_user(request):
                 return JsonResponse(resp)
 
         if form.is_valid():
-            if request.user.is_superuser:
+            save_instance = form.save(commit=False)
+            if not request.user.is_superuser:
+                staff_instance = get_object_or_404(StaffUser,user=request.user)
+                save_instance.assigned_staff =  assigned_staff
+            else :
                 if user_id:
                     if is_staff == 'on' and not staff:
                         staff_user,created = StaffUser.objects.get_or_create(user=user)
-                        assigned_staff = None
+                        save_instance.assigned_staff = None
+                        
                     else:
                         StaffUser.objects.filter(user=user).delete()
                     messages.success(request, "User has been updated successfully.")
                 else:
                     if is_staff == 'on' and not staff:
-                        assigned_staff = None
-                        staff_user,created = StaffUser.objects.get_or_create(user=form)
+                        save_instance.assigned_staff = None
+                        save_instance.save()
+                        staff_user,created = StaffUser.objects.get_or_create(user=save_instance)
                     messages.success(request, "User has been saved successfully.")
-                    
-            else :
-                staff_instance = get_object_or_404(StaffUser,user=request.user)
-                assigned_staff = staff_instance
-            save_instance = form.save(commit=False)
-            save_instance.assigned_staff =  assigned_staff
-            save_instance.save()   
+            save_instance.save()
             resp['status']  = 'success'
-            # if not user_id:
-            #     form.save()
-            #     user = form.instance
-            #     if is_staff == 'on':
-            #             assigned_staff = None
-            #             staff_user, created = StaffUser.objects.get_or_create(user = user)
-            # else:
-            #     if is_staff == '':
-            #         StaffUser.objects.filter(user=user).delete()
-            #     if is_staff == 'on':
-            #         assigned_staff = None
-            #         staff_user, created = StaffUser.objects.get_or_create(user = user)
-            #     save_instance=form.save(commit=False)
-            #     save_instance.assigned_staff = assigned_staff
-            #     save_instance.save()
-            # resp['status'] = 'success'
-
+           
         else:
             for field in form:
                 for error in field.errors:
