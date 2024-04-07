@@ -19,7 +19,7 @@
     {% comment %} css regarding datatables {% endcomment %}
     <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.dataTables.min.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
-    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/3.0.0/css/buttons.dataTables.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/3.0.1/css/buttons.dataTables.min.css">
     {% comment %} scripts regarding data tables {% endcomment %}
     <script src="https://code.jquery.com/jquery-3.7.1.js"></script>
     <script src="https://cdn.datatables.net/2.0.0/js/dataTables.js"></script>
@@ -30,6 +30,8 @@
     <script src="https://cdn.datatables.net/buttons/3.0.0/js/buttons.html5.min.js"></script>
     <script src="https://cdn.datatables.net/responsive/3.0.0/js/dataTables.responsive.js"></script>
     <script src="https://cdn.datatables.net/responsive/3.0.0/js/responsive.dataTables.js"></script>
+    <script src="https://cdn.datatables.net/rowgroup/1.5.0/js/dataTables.rowGroup.js"></script>
+    <script src="https://cdn.datatables.net/rowgroup/1.5.0/js/rowGroup.dataTables.js"></script>
     {% comment %}  {% endcomment %}
     <script src="https://cdn.datatables.net/rowgroup/1.4.1/js/dataTables.rowGroup.min.js" ></script>
     <script src="{% static 'assets/bootstrap/js/popper.min.js' %}"></script>
@@ -38,6 +40,7 @@
     <script type="text/javascript" src="{% static 'assets/default/js/script.js' %}"></script>
     <script type="text/javascript" src="{% static 'assets/default/js/vfs_fonts.js' %}"></script>
     <style>
+        
         .modal-sub-footer {
             display: flex;
             flex-wrap: wrap;
@@ -63,23 +66,15 @@
 
 /* Add more media queries for other screen sizes as needed */
 
-        #viewer_modal #img-viewer {
-            position: relative;
-        }
-        
-        #viewer_modal #img-viewer img {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            object-fit: scale-down;
-            object-position: center center;
-            transition: all .2s ease-in-out;
-        }
+       
         body{
             background-image:url("{% static 'assets/default/img/bg1.jpg' %}");
             background-size:cover;
             background-repeat:no-repeat;
             background-position:center center;
+        }
+        #userlist_checkbox[type="checkbox"]{
+            pointer-events: none;
         }
     </style>
     {% block headerContent %} {% endblock headerContent %}

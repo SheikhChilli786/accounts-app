@@ -1,4 +1,5 @@
 {% load static %}
+<body>
 <div class="container-fluid">
     <form action="" id="party-form">
     {% if party.user.id %}
@@ -21,6 +22,7 @@
         
     </form>
 </div>
+</body>
 <script>
     $(function() {
         $('#party-form').submit(function(e) {
@@ -39,7 +41,7 @@
                 headers: {
                     "X-CSRFToken": '{{csrf_token}}'
                 },
-                url: "{% url 'save-party' %}",
+                url: "{% url 'accounts:save-party' %}",
                 data: new FormData($(this)[0]),
                 cache: false,
                 contentType: false,

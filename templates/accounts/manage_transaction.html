@@ -1,3 +1,4 @@
+
 {% load static %}
 <style>
 
@@ -75,18 +76,20 @@
         margin-top: 5px; /* Improved spacing for better readability */
     }
 </style>
+<body>
 <div class="container-fluid">
 <form id="transactionForm">
 {% csrf_token %}
           <div class="form-group row">
           <input type="hidden" name='user_id' value="{{user_id}}"></input>
+          <input type="hidden" id="id" name='id' value=""></input>
         <div class="col-md-6">
             <label for="date">Date:</label>
-            <input type="date" name='date' class="form-control"  id="date" required>
+            <input type="date" name='date' value = "" class="form-control" value="{{transaction.form.created_at}}" id="date" required>
         </div>
         <div class="col-md-6">
         <label for="party" class="control-label">Party:</label>
-        <input type="text" id="name" name="name" list="partyList" class="form-control" required>
+        <input type="text" id="name" value="" name="name" list="partyList" class="form-control" required>
         <datalist id="partyList">
             {% for party in parties %}
             <option value="{{party.name}}">
@@ -102,26 +105,50 @@
 <div class="form-group row">
     <div class="col-md-6">
         <label for="debit">Debit Amount:</label>
-        <input type="number" name="debit" class="form-control" id="debit" min="0" step="0.01" default="0" required>
+        <input type="number" name="debit" class="form-control" id="debit" value="" min="0" step="0.01" default="0" >
     </div>
     <div class="col-md-6">
         <label for="credit">Credit Amount:</label>
-        <input type="number" name="credit" class="form-control" id="credit" min="0" step="0.01" default="0" required>
+        <input type="number" name="credit" class="form-control" id="credit" min="0" step="0.01" value = "" default="0" >
     </div>
 </div>
 
 
 <button type="submit" class="btn btn-secondary" id="addTransaction">Add to List</button>
 </form>
-    <ul class="list-group mt-3" id="transactionList">
-    </ul>
+    <div id="transactionList">
+        <table class="display cell-border " style="width:100%" id="transaction-tbl">
+            <thead>
+                <tr>
+                    <th >#</th>
+                    <th >Date</th>
+                    <th >Name</th>
+                    <th >Description</th>
+                    <th >Debit</th>
+                    <th >Credit</th>
+                    <th >Action</th>
+                </tr>
+            </thead>
+            
+        </table>
+    </div>
 </div>
+</body>
 <script>
     $(document).ready(function () {
-        // Set default value for date field to today's date
+       
         
+        $('#myModal').off('shown.bs.modal').on('shown.bs.modal', function () {
+            $('#date').val(localStorage.getItem('date'));
+            dataTable = initializeDataTable();
+        });
         
-        // Disable/enable credit amount based on debit amount and vice versa
+        $('#date').on('change', function () {
+            localStorage.setItem('date', $(this).val());
+            initializeDataTable()
+        })
+
+
         $('#debit').on('input', function () {
             var debitValue = $(this).val();
             $('#credit').prop('disabled', debitValue > 0);
@@ -133,14 +160,18 @@
             $('#debit').prop('disabled', creditValue > 0);
             clearError('#credit');
         });
-        $('#date').on('change',function(){
-            localStorage.setItem('date',$('#date').val())
-            getDateList()
-        })
+        
         // Add transaction to the list
         $('#transactionForm').submit(function (e) {
-            var date = $('#date').val()
+            var id = $('#id').val();
+            console.log(id)
+            var name = $('#name').val();
+            var description = $('#description').val();
+            var debit = $('#debit').val();
+            var credit = $('#credit').val();
+            
             e.preventDefault()
+            
             var _this = $(this)
             $('.err-msg').remove();
             var el = $('<div>')
@@ -150,12 +181,13 @@
                 _this[0].reportValidity();
                 return false;
             }
+            
             start_loader();
             $.ajax({
                 headers: {
                     "X-CSRFToken": '{{csrf_token}}'
                 },
-                url: "{% url 'save-transaction' %}",
+                url: "{% url 'accounts:save-transaction' %}",
                 data: new FormData($(this)[0]),
                 cache: false,
                 contentType: false,
@@ -169,31 +201,22 @@
                     end_loader();
                 },
                 success: function(resp) {
-                    if (typeof resp == 'object' && resp.status == 'success') {
-                    window.location.href = window.location.href;
-                        
-                    } else if (resp.status == 'failed' && !!resp.msg) {
-                        el.text(resp.msg)
-                    } else {
-                    getDateList()   
-                        el.text("An error occured", 'error');
+                    if (typeof resp === 'object' && resp.status === 'success') {
+                        $('#date').val(localStorage.getItem('date'));
+                        initializeDataTable()
                         end_loader();
-                        console.err(resp)
+                    } else {
+                        el.text("An error occurred", 'error');
+                        _this.prepend(el)
+                        el.show('slow')
+                        $("html, body, .modal").scrollTop(0);
+                        end_loader();
                     }
-                    _this.prepend(el)
-                    el.show('slow')
-                    $("html, body, .modal").scrollTop(0);
-                    end_loader()
                 }
             })
-            $('#date, #name, #description, #debit, #credit').prop('disabled', false);
+             $('#date, #name, #description, #debit, #credit').prop('disabled', false);
 
-            var name = $('#name').val();
-            var description = $('#description').val();
-            var debit = $('#debit').val();
-            var credit = $('#credit').val();
-
-            // Check if every field is filled (except for credit or debit)
+            
             if (name.trim() !== "") {
                 // Check if either debit or credit has a value greater than 0
                 if ((debit.trim() !== "" && parseFloat(debit) > 0) || (credit.trim() !== "" && parseFloat(credit) > 0)) {
@@ -206,8 +229,6 @@
                 
                     // Clear form fields
                     $('#transactionForm')[0].reset();
-
-                    $('#date').val(date);
                     $('#name').focus();
                 } else {
                     // Group "Credit" and "Debit" fields together in an outline
@@ -229,7 +250,7 @@
                 emptyField.after('<div class="text-danger">Please fill this field.</div>');
             }
         });
-                    // Function to clear errors for a given element
+
         window.clearError = function (element) {
             if (Array.isArray(element)) {
                 element.forEach(function (item) {
@@ -255,14 +276,14 @@
             $(element).next('.text-danger').remove();
         }
         
-        function getDateList(){
-            var selectedDate = localStorage.getItem('date')
+        function initializeDataTable() {
+             var selectedDate = localStorage.getItem('date')
             if(selectedDate==''){
             selectedDate = '2000-01-01'
             }
             // AJAX request to fetch transactions based on the selected date
             $.ajax({
-                url: '{% url "transaction_list" %}',
+                url: '{% url "accounts:transaction_list" %}',
                 type: 'GET',
                 data: {'date': selectedDate,
                         'user_id':{{user_id}}},
@@ -286,7 +307,7 @@
                         transactionHtml += '<td>' + transaction.credit + '</td>';
                         transactionHtml += '<td>' +
                                     '<div class="btn-group" role="group" aria-label="Edit and Delete buttons">' +
-                                    '<button class="btn btn-light btn-sm rounded-0 border edit-data-transaction" data-url="/edit_transaction/' + transaction.id + '" type="button">' +
+                                    '<button class="btn btn-light btn-sm rounded-0 border edit-data-transaction" data-url="/manage_transaction/' + transaction.id + '" type="button">' +
                                     '<i class="fa fa-pencil text-secondary"></i>' +
                                     '</button>' +
                                     '<button class="btn btn-light btn-sm rounded-0 border delete-data-transaction" data-url="/delete_transaction/' + transaction.id + '" type="button">' +
@@ -337,9 +358,28 @@
                     var column2 = dataTable.column(hide2ColumnIndex);
                     column2.visible(false);
                     $('#transactionList').off('click', '.edit-data-transaction').on('click', '.edit-data-transaction', function() {
-                        $('#myModal').modal('hide');
-                        uni_modal("<i class='fa fa-edit'></i> Edit Details", $(this).attr('data-url'));
-
+                        $.ajax({
+                            url: $(this).attr('data-url'),
+                            method: 'GET',
+                            data: {
+                                'user_id': {{user_id}},
+                            },
+                            error: err =>{
+                                    alert("An error occured")
+                                },
+                            success: function(resp){
+                                if(resp){
+                                    $('#name').val(resp.transaction.party);
+                                    $('#description').val(resp.transaction.description);
+                                    $('#debit').val(resp.transaction.debit);
+                                    $('#credit').val(resp.transaction.credit);
+                                    $('#id').val(resp.transaction.id);
+                                    
+                                    initializeDataTable()
+                                    end_loader()
+                                }
+                            }
+                        });
                     });
                     $('#transactionList').on('click', '.delete-data-transaction',function() {
                         $('#myModal').modal('hide');
@@ -352,13 +392,22 @@
                 }
             });
         }
+
+        $.fn.dataTable.ext.search.push(
+            function (settings, data, dataIndex) {
+                var date = $('#date').val() ? new Date($('#date').val()) : null;
+                var transactionDate = new Date(data[1]); // assuming the date is in the 5th column
+
+                if ( date == null || transactionDate.setHours(0, 0, 0, 0) == date.setHours(0,0,0,0) ) {
+                    return true;
+                }
+
+                return false;
+            }
+        );
         
         // Set the cursor on the name field when modal is opened
-        $('#myModal').off('shown.bs.modal').on('shown.bs.modal', function () {
-            $('#date').val(localStorage.getItem('date'))
-             getDateList()
-            {% comment %} $('#name').focus(); {% endcomment %}
-        });
+        
     });
     function delete_transaction(url) {
         var date = $('#date').val()
@@ -388,7 +437,30 @@
                         el.show()
                     } else {
                         $('#confirm_modal').modal('hide');
-                        form_modal("{% url 'manage-transaction' user_id %}")
+                        $.ajax({
+                            url: "{% url 'accounts:manage-transaction'  %}",
+                            method: 'GET',
+                            data: {
+                                'user_id': {{user_id}},
+                            },
+                            error: err =>{
+                                    alert("An error occured")
+                                },
+                            success: function(resp){
+                                if(resp){
+                                    
+                                    $('#myModal .modal-body').html(resp)
+                                    
+                                    $('myModal').modal({
+                                        backdrop:'static',
+                                        keyboard:false,
+                                        focus:true
+                                    })
+                                    $("#myModal").modal('show')
+                                    end_loader()
+                                }
+                            }
+                        });
                         el.html("An error occurred")
                         _this.prepend(el)
                         el.show()

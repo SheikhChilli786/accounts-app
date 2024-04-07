@@ -1,12 +1,17 @@
-import json 
-from . import models,forms
-from django.http import JsonResponse ,HttpResponse
-from django.shortcuts import redirect,render , get_object_or_404
+import json
+from django.core import serializers
+
+from django.db.models import BooleanField, Case, When, Value
+from django.views.generic import ListView
+from django.shortcuts import render,redirect,get_object_or_404
+from django.http import JsonResponse ,HttpResponse,HttpResponseForbidden
 from django.contrib import messages 
+from django.contrib.contenttypes.models import ContentType
 from django.contrib.auth import update_session_auth_hash,logout,authenticate,login,get_user_model
 from django.contrib.auth.decorators import login_required
-from datetime import datetime
-
+from .models import *
+from .forms import *
+# Create your views here.
 User = get_user_model()
 def context_data(request):
     fullpath = request.get_full_path()
@@ -22,216 +27,81 @@ def context_data(request):
     }
     return context
 
-def home(request):
-    context = context_data(request)
-    context['footer'] = False
-    context['page_name'] = 'home'
-    context['page_title'] = 'Home'
-    return render(request,'index.html',context)
-
-def login_page(request):
-    context = context_data(request)
-    context['topbar'] = False
-    context['footer'] = False
-    context['page_name'] = 'login'
-    context['page_title'] = 'Login'
-    return render(request,'login.html',context)
-
-def logout_user(request):
-    logout(request)
-    return redirect("login-page")
-
-
-def login_user(request):
-    logout(request)
-    resp = {
-        "status":'failed',
-        'msg':''
-    }
-    username = ''
-    password = ''
-    if request.POST:
-        username = request.POST['username']
-        password = request.POST['password']
-        user = authenticate(username = username,password=password)
-        if user is not None:
-            if user.is_active:
-                login(request,user)
-                resp['status'] = 'success'
-            else:
-                resp['msg'] = "Incorrect username or password"
-        else:
-            resp['msg'] = "Incorrect username or password"
-    return HttpResponse(json.dumps(resp),content_type = 'application/json')
-
-### Views For Users
-
 @login_required
-def users_list(request):
-    context = context_data(request)
-    context['page'] = 'home'
-    context['page_title'] = 'Home'
-    context['page_name'] = context['system_name']
-    if request.user.is_superuser:
-        context['users'] = User.objects.exclude(id = request.user.id).filter(is_active=True)
-    else:
-        return redirect('party-list')
-    return render(request,'users.html',context)
-
-@login_required
-def save_user(request):
-    resp = {'status': 'failed', 'msg': ''}
-
-    if request.method == 'POST':
-        post = request.POST
-        user_id = post.get('id', '')
-
-        if request.user.is_superuser:
-            try:
-                if user_id:
-                    user = User.objects.get(id=user_id)
-                    form = forms.UpdateUser(post, instance=user)
-                else:
-                    form = forms.SaveUser(post)
-            except User.DoesNotExist:
-                    resp['msg'] = f"User with id {user_id} does not exist."
-                    return JsonResponse(resp)
-        else:
-            resp['msg'] = "You are not authorized to edit/create Users"
-            return JsonResponse(resp)
-
-        if form.is_valid():
-            form.save()
-            if not user_id:
-                messages.success(request, "User has been saved successfully.")
-            else:
-                messages.success(request, "User has been updated successfully.")
-            resp['status'] = 'success'
-        else:
-            for field in form:
-                for error in field.errors:
-                    resp['msg'] += f"[{field.name}] {error}<br/>"
-    else:
-        resp['msg'] = "There's no data sent on the request"
-
-    return JsonResponse(resp)
- 
-
-@login_required
-def manage_user(request, pk=None):
-    context = context_data(request)
-    context['page'] = 'manage_user'
-    context['page_title'] = 'Manage User'
-    if request.user.is_superuser:
-        if pk is None:
-            context['user'] = {}
-        else:
-            context['user'] = get_object_or_404(User, id=pk)
-    else:
-        return render(request,'unauthorized.html',context)
-    return render(request, 'manage_user.html', context)
-
-@login_required
-def restore_user(request,pk=None):
-    resp = {
-        'status': 'failed',
-        'msg': ''
-    }
-
-    if pk is None:
-        resp['msg'] = 'User ID is invalid'
-    else:
-        user = get_object_or_404(User, pk=pk)
-        parties = models.Party.objects.filter(user=user)
-        if request.user.is_superuser:
-            if not user.is_active:
-                try:
-                    user.is_active = True
-                    user.save()
-                    parties.update(delete_flag=0)
-                    messages.success(request, "User has been activated successfully.")
-                    resp['status'] = 'success'
-                except Exception as e:
-                    resp['msg'] = "Deactivating User Failed."
-            
-        else:
-            resp['msg'] = "You are not authorized to delete User"
-
-    return HttpResponse(json.dumps(resp), content_type="application/json")
-@login_required
-def delete_user(request, pk=None):
-    resp = {
-        'status': 'failed',
-        'msg': ''
-    }
-
-    if pk is None:
-        resp['msg'] = 'User ID is invalid'
-    else:
-        user = get_object_or_404(User, pk=pk)
-        parties = models.Party.objects.filter(user=user)
-
-        if request.user.is_superuser:
-            if user.is_active:
-                try:
-                    user.is_active = False
-                    user.save()
-                    parties.update(delete_flag=1)
-                    messages.success(request, "User has been deactivated successfully.")
-                    resp['status'] = 'success'
-                except Exception as e:
-                    resp['msg'] = "Deactivating User Failed."
-            else:
-                try:
-                    user.delete()
-                    messages.success(request, "User has been deleted successfully.")
-                    resp['status'] = 'success'
-                except Exception as e:
-                    resp['msg'] = "Deleting User Failed."
-        else:
-            resp['msg'] = "You are not authorized to delete User"
-
-    return HttpResponse(json.dumps(resp), content_type="application/json")
-### Views for Parties
-
-@login_required
-def parties(request,pk=None):
+def user_detail(request, pk=None):
     context = context_data(request)
     context['page'] = 'parties'
     context['page_title'] = 'Parties'
-    if pk and request.user.is_superuser:
-        context['user_id'] = pk
-        context['page_name'] = User.objects.get(pk=pk)
-        context['parties'] = models.Party.objects.filter(user__id=pk,delete_flag=0)
+    if pk:
+        try:
+            user = User.objects.get(pk=pk)
+            if (user.assigned_staff.user if hasattr(user.assigned_staff, 'user') else None)==request.user or request.user.is_superuser:
+                context['parties'] = Party.objects.select_related('user').filter(user = user)
+                context['page_name'] = user
+                context['user'] = user
+            else:
+                return HttpResponse(status=204)
+        except User.DoesNotExist:
+            return HttpResponse(status=204)
     else:
-        if request.user.is_superuser:
-            return redirect('users-list')
-        context['user_id'] = request.user.id
+        if (request.user.staffuser if hasattr(request.user, 'staffuser') else False) or request.user.is_superuser:
+                return HttpResponse(status=204)
+        context['parties'] = Party.objects.filter(user = request.user)
         context['page_name'] = request.user
-        context['parties'] = models.Party.objects.filter(user=request.user,delete_flag=0)
-    return render(request,'party.html',context)
+        context['user'] = request.user
+    return render(request,'accounts/party.html',context)
 
+@login_required
+def manage_party(request,pk=None):
+    context = context_data(request)
+    context['page'] = 'manage_user'
+    context['page_title'] = 'Manage User'
+
+    if pk :
+        party = Party.objects.select_related('user').get(pk=pk)
+        if party:
+            if request.user.is_superuser or (request.user.staffuser if hasattr(request.user, 'staffuser') else False) and (party.user.assigned_staff.user if hasattr(party.user.assigned_staff, 'user') else None)==request.user or request.user == party.user and request.user.has_perm('accounts.change_party'):
+                    context['party'] = party
+            else:
+                HttpResponse("You are not Authorized to Edit This Party")
+        else:
+            return HttpResponse("The party is invalid")        
+          
+    else:
+        if request.user.is_superuser or (request.user.staffuser if hasattr(request.user, 'staffuser') else False) and (request.user.assigned_staff.user if hasattr(request.user.assigned_staff, 'user') else None)==request.user or  request.user.has_perm('accounts.add_party'):
+            context['user_id'] = request.GET.get('user_id')
+        else:
+            HttpResponse("You are not Authorized to Add This Party")
+    return render(request, 'accounts/manage_party.html', context)
+            
 @login_required
 def save_party(request):
     resp = {'status': 'failed', 'msg': ''}
 
     if request.method == 'POST':
-        if not request.user.is_superuser:
-            resp['msg'] = "You are not authorized"
-            return JsonResponse(resp)  # Return 403 Forbidden status
-
         post = request.POST
-        if post['id'] != '':
-            
-            party = models.Party.objects.get(id=post['id'])
-            form = forms.SaveParty(request.POST, instance=party)
-        else:
-            form = forms.SaveParty(request.POST)
-
+        party_id = post.get('id','')
+        user_id = post.get('user','')
+        if user_id:
+            user = User.objects.get(pk=user_id)
+            if party_id:
+                party = Party.objects.select_related('user').get(pk=party_id)
+                if request.user.is_superuser or party.user == request.user and request.user.has_perm('accounts.change_party') or (request.user.staffuser if hasattr(request.user, 'staffuser') else False) and (party.user.assigned_staff.user if hasattr(party.user.assigned_staff, 'user') else None)==request.user:
+                    form = SaveParty(post, instance=party)
+                else:
+                    resp['msg'] = "You are not authorized to edit Party"
+                    return JsonResponse(resp)
+            else:
+                if request.user.is_superuser or user == request.user and request.user.has_perm('accounts.add_party') or (request.user.staffuser if hasattr(request.user, 'staffuser') else False) and (user.assigned_staff.user if hasattr(user.assigned_staff, 'user') else None)==request.user:
+                    form = SaveParty(post)
+                else:
+                    resp['msg'] = "You are not authorized to Add Party"
+                    return JsonResponse(resp)
+                
         if form.is_valid():
             form.save()
 
-            if post['id'] == '':
+            if party_id == '':
                 messages.success(request, "Party has been saved successfully.")
             else:
                 messages.success(request, "Party has been updated successfully.")
@@ -242,113 +112,95 @@ def save_party(request):
                     if resp['msg'] != '':
                         resp['msg'] += '<br/>'
                     resp['msg'] += f'[{field.name}] {error}'
+
     else:
         resp['msg'] = "There's no data sent in the request"
-
     return JsonResponse(resp)
 
-@login_required
-def manage_party(request, pk = None):
-    context = context_data(request)
-    context['page'] = 'manage_party'
-    context['page_title'] = 'Manage Party'
-    if request.user.is_superuser:
-        if pk is None:
-            context['party'] = {}
-        else:
-            context['party'] = get_object_or_404(models.Party,id=pk)
-    else:
-        return render(request,'unauthorized.html',context)
-    return render(request, 'manage_party.html', context)
 
 @login_required
-def manage_party_new(request, pk = None):
-    context = context_data(request)
-    context['page'] = 'manage_party'
-    context['page_title'] = 'Manage Party'
-    if request.user.is_superuser:
-        context['user_id'] = pk
-        return render(request, 'manage_party.html', context)
-    else:
-        return render(request, 'unauthorized.html', context)
-        
-@login_required
-def delete_party(request,pk=None):
-    resp = {
-        'status':'failed',
-        'msg':''
-    }   
-    if request.user.is_superuser:
-        if pk is None:
-            resp['msg'] = 'User ID is invalid'
-        else:
-            party = models.Party.objects.filter(pk = pk)
-            if party[0].delete_flag == 0:
-                try:
-                    party.update(delete_flag=1)
-                    messages.success(request, "Party has been moved to recycle bin successfully.")
-                    resp['status'] = 'success'
-                except:
-                    resp['msg'] = "Deleting User Failed."
-            else:
-                party.delete()
-                messages.success(request,"User has been moved to recycle bin successfully.")
-                resp['status'] = 'success'
-    else:
-        resp['msg'] = "You are not authorized to delete party"
-    return HttpResponse(json.dumps(resp),content_type = "application/json")
-
-
-@login_required
-def restore_party(request,pk=None):
+def delete_party(request, pk=None):
     resp = {
         'status': 'failed',
         'msg': ''
     }
 
-    if pk is None:
-        resp['msg'] = 'Party ID is invalid'
-    else:
-        party = models.Party.objects.filter(pk=pk)
-        if request.user.is_superuser:
-            if  party[0].delete_flag == 1:
-                try:
-                    party.update(delete_flag=0)
-                    messages.success(request, "Party has been restored successfully0.")
+    if pk:
+        party = Party.objects.select_related('user').filter(pk = pk)
+        if party:
+            if request.user.is_superuser or party[0].user == request.user and request.user.has_perm('accounts.add_party') or (request.user.staffuser if hasattr(request.user, 'staffuser') else False) and (party[0].user.assigned_staff.user if hasattr(party[0].user.assigned_staff, 'user') else None)==request.user:            
+                if party[0].delete_flag == 0:
+                    try:
+                        party.update(delete_flag=1)
+                        messages.success(request, "Party has been moved to recycle bin successfully.")
+                        resp['status'] = 'success'
+                    except:
+                        resp['msg'] = "Deleting User Failed."
+                else:
+                    party.delete()
+                    messages.success(request,"Party has been deleted successfully.")
                     resp['status'] = 'success'
-                except Exception as e:
-                    resp['msg'] = "Deactivating User Failed."
             else:
-                    messages.error(request, "Party has been already restored or have been deleted.")
-                    resp['status'] = 'error'
+                return HttpResponse(status=204)
         else:
-            resp['msg'] = "You are not authorized to delete User"
+            return HttpResponse(status=204)
+    
+    else:
+        resp['msg'] = "There's no data sent in the request"
 
-    return HttpResponse(json.dumps(resp), content_type="application/json")
+    return HttpResponse(json.dumps(resp),content_type="application/json")
 
 @login_required
-def manage_transaction(request,pk=None):
+def manage_transaction(request, pk=None):
     context = context_data(request)
     context['page'] = 'manage_transaction'
     context['page_title'] = 'Manage Transaction'
+    
+    user_id = request.GET.get('user_id', '')
+    try:
+        user = User.objects.get(pk=user_id)
+    except User.DoesNotExist:
+        return HttpResponse(status=204)
+
     if pk is None:
-            context['parties'] = {}
-    else:   
-        if request.user.is_superuser:
-                context['user_id'] = pk
-                context['parties'] = models.Party.objects.filter(user__id=pk,delete_flag=0)
+        # Adding a new transaction
+        if (request.user.is_superuser or 
+            (user == request.user and request.user.has_perm('accounts.add_transaction')) or
+            (hasattr(request.user, 'staffuser') and request.user.staffuser and
+             user.assigned_staff.user == request.user)):
+            
+            context['user_id'] = user.id
+            context['parties'] = Party.objects.filter(user=user, delete_flag=0)
         else:
-            return render(request,'unauthorized.html',context)
-    return render(request, 'manage_transaction.html', context)
+            return HttpResponse("You are not allowed to manage Transactions. Please contact admin for further queries")
+    else:
+        # Editing an existing transaction
+        print(user == request.user , request.user.has_perm('accounts.change_transaction'))
+        if (request.user.is_superuser or 
+            (user == request.user and request.user.has_perm('accounts.change_transaction')) or
+            (hasattr(request.user, 'staffuser') and request.user.staffuser and
+             user.assigned_staff.user == request.user)):
+            transaction = get_object_or_404(Transaction, pk=pk)
+            context['user_id'] = user.id
+            transaction_data =      {'party': transaction.party.name,
+                                    'description': transaction.description,
+                                    'user': transaction.party.user.username,
+                                    'debit': transaction.debit,
+                                    'credit': transaction.credit,
+                                    'date': transaction.form.created_at,
+                                    'id':transaction.pk}
+            
+            return JsonResponse({'transaction':transaction_data})
+        else:
+            return HttpResponse("You are not allowed to manage Transactions. Please contact admin for further queries")
+
+    return render(request, 'accounts/manage_transaction.html', context)
 
 @login_required
 def save_transaction(request):
-    resp = {'status': 'failed', 'msg': ''}
+    resp = {'status': 'failed', 'msg': '', 'transaction': None}
 
     if request.method == 'POST':
-        if not request.user.is_superuser:
-            resp['msg'] = "You are not authorized"
-            return JsonResponse(resp, status=403)  # Return 403 Forbidden status
 
         post = request.POST
         id = post.get('id','') 
@@ -357,31 +209,43 @@ def save_transaction(request):
         party = post.get('name', '')
         debit = post.get('debit','')
         credit = post.get('credit','')
-        party = get_object_or_404(models.Party, name=party,user__id=user_id)
-        form_obj, created = models.Form.objects.get_or_create(created_at=date)
-        if id != '':
-            transaction = models.Transaction.objects.get(id = id)
-            form = forms.SaveForm(post,instance=transaction)
-        else: 
-            form = forms.SaveForm(post)
+        if user_id:
+            party = Party.objects.get(name=party,user__id=user_id)
+            if party:
+                form_obj, created = Form.objects.get_or_create(created_at=date)
+                if id:
+                    transaction = Transaction.objects.get(id = id)
+                    if request.user.is_superuser or party.user == request.user and request.user.has_perm('accounts.change_transaction') or (request.user.staffuser if hasattr(request.user, 'staffuser') else False) and (party.user.assigned_staff.user if hasattr(party.user.assigned_staff, 'user') else None)==request.user:
+                        form = SaveForm(post,instance=transaction)
+                    else:
+                        resp['msg'] = "You are not authorized to Edit Transaction "
+                        return JsonResponse(resp)
+                else:
+                    if request.user.is_superuser or party.user == request.user and request.user.has_perm('accounts.add_transaction') or (request.user.staffuser if hasattr(request.user, 'staffuser') else False) and (party.user.assigned_staff.user if hasattr(party.user.assigned_staff, 'user') else None)==request.user:
+                        form = SaveForm(post)
+                    else:
+                        resp['msg'] = "You are not authorized to Add transaction"
+                        return JsonResponse(resp)
+            else:
+                return JsonResponse(status=204)
 
-        if form.is_valid():
-            transaction_instance = form.save(commit=False)
-            transaction_instance.party = party
-            transaction_instance.form = form_obj
-            if debit == '':
-                transaction_instance.debit = 0
-            if credit == '':
-                transaction_instance.credit = 0
-            transaction_instance.save()
-        
-           
-        else:
-            for field in form:
-                for error in field.errors:
-                    if resp['msg'] != '':
-                        resp['msg'] += '<br/>'
-                    resp['msg'] += f'[{field.name}] {error}'
+            if form.is_valid():
+                transaction_instance = form.save(commit=False)
+                transaction_instance.party = party
+                transaction_instance.form = form_obj
+                if debit == '':
+                    transaction_instance.debit = 0
+                if credit == '':
+                    transaction_instance.credit = 0
+                transaction_instance.save()
+                resp['status'] = 'success'
+            
+            else:
+                for field in form:
+                    for error in field.errors:
+                        if resp['msg'] != '':
+                            resp['msg'] += '<br/>'
+                        resp['msg'] += f'[{field.name}] {error}'
     else:
         resp['msg'] = "There's no data sent in the request"
 
@@ -390,152 +254,77 @@ def save_transaction(request):
 @login_required
 def transaction_list(request):
     if request.method == 'GET':
-        if request.user.is_superuser:
-            selected_date = request.GET.get('date')
-            user_id = request.GET.get('user_id')
-            if selected_date == '2000-01-01':
-                transactions = models.Transaction.objects.select_related('party__user').filter(delete_flag=0,party__delete_flag=0,party__user__id = user_id)
+        selected_date = request.GET.get('date')
+        user_id = request.GET.get('user_id')
+        user = User.objects.get(pk=user_id)
+        if user:
+            if request.user.is_superuser or user == request.user and request.user.has_perm('accounts.add_transaction') or (request.user.staffuser if hasattr(request.user, 'staffuser') else False) and (user.assigned_staff.user if hasattr(user.assigned_staff, 'user') else None)==request.user:
+                if selected_date == '2000-01-01':
+                    transactions = Transaction.objects.select_related('party__user').filter(delete_flag=0,party__delete_flag=0,party__user = user)
+                else:
+                    transactions = Transaction.objects.select_related('party__user').filter(delete_flag=0,party__delete_flag=0,form__created_at=selected_date,party__user = user)
+                transaction_data = [{'party': transaction.party.name,
+                                    'description': transaction.description,
+                                    'user': transaction.party.user.username,
+                                    'debit': transaction.debit,
+                                    'credit': transaction.credit,
+                                    'date': transaction.form.created_at,
+                                    'id':transaction.pk} for transaction in transactions]
+
+                return JsonResponse({'transactions': transaction_data})
+        
             else:
-                transactions = models.Transaction.objects.select_related('party__user').filter(delete_flag=0,party__delete_flag=0,form__created_at=selected_date,party__user__id = user_id)
-            transaction_data = [{'party': transaction.party.name,
-                                'description': transaction.description,
-                                'user': transaction.party.user.username,
-                                'debit': transaction.debit,
-                                'credit': transaction.credit,
-                                'date': transaction.form.created_at,
-                                'id':transaction.id} for transaction in transactions]
-
-            return JsonResponse({'transactions': transaction_data})
-        
-        else:
-            return JsonResponse({
-                "msg" : "You are not authorized to view transaction"
+                return JsonResponse({
+                    "msg" : "You are not authorized to view transaction"
             })
-        
-
-@login_required
-def edit_transaction(request,pk=None):
-    context = context_data(request)
-    context['page'] = 'edit_transaction'
-    context['page_title'] = 'Edit Transaction'
-    if request.user.is_superuser:
-            
-        transaction = models.Transaction.objects.select_related('party').get(id=pk)
-        user = transaction.party.user
-        context['user_id'] = user.id
-        context['transaction'] = transaction
-        context['parties'] = models.Party.objects.filter(user=user )
-        return render(request,'edit_transaction.html',context)
-    else:
-        return render(request,'unauthorized.html',context)
-
+        else:
+            JsonResponse(status=204)
+ 
 @login_required
 def delete_transaction(request,pk=None):
     resp = {
         'status':'failed',
         'msg':''
-    }   
-    if request.user.is_superuser:
-        if pk is None:
-            resp['msg'] = 'User ID is invalid'
+    } 
+    
+    if pk:  
+        transaction = models.Transaction.objects.select_related('party__user').filter(pk = pk)
+        if transaction:
+            if request.user.is_superuser or transaction[0].party.user == request.user and request.user.has_perm('accounts.delete_transaction') or (request.user.staffuser if hasattr(request.user, 'staffuser') else False) and (transaction[0].party.user.assigned_staff.user if hasattr(transaction[0].party.user.assigned_staff, 'user') else None)==request.user:   
+                if transaction[0].delete_flag == 0:
+                    try:
+                        transaction.update(delete_flag =1)
+                    except:
+                        resp['msg'] = "Deleting Transaction Failed."
+                else:
+                    try:
+                        transaction.delete()
+                        messages.success(request,"Transaction hasd been deleted successfully") 
+                        resp['status'] = "success"
+                    except:
+                        resp['msg'] = 'Deleting user failed'
+            else:  
+                resp['msg']= "you are not authorized to delete transactions"
+                return HttpResponse(json.dumps(resp))
         else:
-            transaction = models.Transaction.objects.filter(pk = pk)
-            if transaction[0].delete_flag == 0:
-                try:
-                    transaction.update(delete_flag =1)
-                except:
-                    resp['msg'] = "Deleting User Failed."
-            else:
-                try:
-                    transaction.delete()
-                    messages.success(request,"Transaction hasd been deleted successfully") 
-                    resp['status'] = "success"
-                except:
-                    resp['msg'] = 'Deleting user failed'
+
+            resp['msg']= "No transaction found with the given id"
+            return HttpResponse(status=204)
+        
     else:
         resp['msg'] = "You are not authorized to delete Transaction"
     return HttpResponse(json.dumps(resp),content_type = "application/json")
 
 @login_required
-def restore_transaction(request,pk=None):
-    resp = {
-        'status': 'failed',
-        'msg': ''
-    }
-
-    if pk is None:
-        resp['msg'] = 'User ID is invalid'
-    else:
-        transaction = models.Transaction.objects.filter(pk=pk)
-        if request.user.is_superuser:
-            if transaction[0].delete_flag==1:
-                try:
-                    transaction.update(delete_flag=0)
-                    messages.success(request, "transaction has been restored successfully.")
-                    resp['status'] = 'success'
-                except Exception as e:
-                    resp['msg'] = "Deactivating User Failed."
-            else:
-                    resp['msg'] = "Transaction has been already deleted or restored."
-
-        else:
-            resp['msg'] = "You are not authorized to delete User"
-
-    return HttpResponse(json.dumps(resp), content_type="application/json")
-
-@login_required
-def range_transaction(request,pk=None):
-    context = context_data(request)
-    context['page'] = 'range_transactions'
-    context['page_title'] = 'Range Transactions'
-    context['party_id'] = pk
-    return render(request,'manage_range.html',context)
-
-
-@login_required
 def view_transactions(request,pk=None):
     if request.method == 'GET':
-        # date_from = request.POST.get('date_from')
-        # date_to = request.POST.get('date_to')
-        # party_id = request.POST.get('id')
-        # Filter transactions based on date range
         party = models.Party.objects.get(id=pk)
-        if party.user == request.user or request.user.is_superuser:
-        # prior_transactions = models.Transaction.objects.select_related('party').filter(delete_flag=0,party = party,form__created_at__lt=date_from)
-        # transactions = models.Transaction.objects.select_related('party').filter(delete_flag=0,party = party,form__created_at__range=[date_from, date_to]).order_by('form__created_at', 'time')
+        if party.user == request.user and request.user.has_perm('accounts.view_transaction') or request.user.is_superuser or (request.user.staffuser if hasattr(request.user, 'staffuser') else False) and (party.user.assigned_staff.user if hasattr(party.user.assigned_staff, 'user') else None)==request.user:
             transactions = models.Transaction.objects.select_related('party').filter(delete_flag=0,party = party).order_by('form__created_at', 'time')
-        # prior_debit_total = sum(transaction.debit for transaction in prior_transactions)
-        # prior_credit_total = sum(transaction.credit for transaction in prior_transactions)
+            return render(request, 'accounts/transactions.html', {'transactions': transactions,"party":party})
+        else:
+            return HttpResponse(status=204)
         
-        # Calculate sum of debit and credit for current transactions
-            debit_total = sum(transaction.debit for transaction in transactions)
-            credit_total = sum(transaction.credit for transaction in transactions)
-        
-        # Calculate net balance by subtracting credit from debit
-        # prior_balance = (prior_debit_total) - (prior_credit_total )
-        
-        # Render the transactions template with the filtered transactions
-            return render(request, 'transactions.html', {'transactions': transactions,
-                                                     "party":party,
-                                                    #  'from':date_from,
-                                                    #  "to":date_to,
-                                                    #  'prior_balance': prior_balance,
-                                                    #  'point_balance':
-                                                     })
-
-    # Handle GET requests or other cases as needed
-        return render(request, 'unauthorized.html')
-
-@login_required
-def recycle_bin(request):
-    context = context_data(request)
-
-    if request.method == 'GET':
-        if not request.user.is_superuser:
-            return render(request,'unauthorized.html')
-            
-        context['users'] = User.objects.filter(is_active=False)
-        context['parties'] = models.Party.objects.select_related('user').filter(delete_flag=1)
-        context['transactions'] = models.Transaction.objects.select_related('party','form').filter(delete_flag=1)
-
-        return render(request,'recycle.html',context)
+    else:
+        return HttpResponse(status=403)
+   

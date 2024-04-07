@@ -21,7 +21,7 @@
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark bg-gradient fixed-top shadow border-bottom">
         <div class="container">
             <!-- Navbar brand -->
-            <a class="navbar-brand"  href="{% url 'users-list' %}">
+            <a class="navbar-brand"  href="{% url 'core:user-list' %}">
             {% if page_title %}
                 <b>{{page_name}}</b>
             {% else %}
@@ -33,49 +33,29 @@
             </button>
             <div class="collapse navbar-collapse" id="navbarExample01">
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0" id="topNav">
-                    {% if request.user.is_authenticated %}
-                    {% comment %} <li class="nav-item">
-                        <a class="nav-link" aria-current="page" href="{% url 'home-page' %}">Home</a>
-                    </li> {% endcomment %}
-                    {% comment %} <li class="nav-item">
-                        <a class="nav-link" aria-current="page" href="{% url 'category-page' %}">Categories</a>
-                    </li>
+                    {% if request.user.staffuser %}
                     <li class="nav-item">
-                        <a class="nav-link" aria-current="page" href="{% url 'sub_category-page' %}">Sub Categories</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" aria-current="page" href="{% url 'book-page' %}">Books</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" aria-current="page" href="{% url 'student-page' %}">Students</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" aria-current="page" href="{% url 'borrow-page' %}">Borrowing Transactions</a>
-                    </li>{% endcomment %}
-                    {% if request.user.is_superuser %}
-                    <li class="nav-item">
-                        <a class="nav-link" aria-current="page" href="{% url 'users-list' %}">Users</a>
+                        <a class="nav-link" aria-current="page" href="{% url 'core:user-list' %}">Users</a>
                     </li> 
-                    <li class="nav-item">
+                    {% endif %}
+                    {% comment %} <li class="nav-item">
                         <a class="nav-link" aria-current="page" href="{% url 'recycle-bin' %}">Recycle Bin</a>
-                    </li> 
-                    {% endif %}
-                    {% endif %}
+                    </li>  {% endcomment %}
                 </ul>
 
                 <ul class="navbar-nav d-flex flex-row">
-                    {% if request.user.is_superuser %}
+                    {% if request.user.is_staff %}
                     <li class="nav-item">
-                        <a class="nav-link"  href="{% url 'admin:index' %}"><b>Howdy, {{user.username}}</b></a>
+                        <a class="nav-link"  href="{% url 'admin:index' %}"><b>Howdy, {{user.username}}</b><a>
                     </li>
                     {% endif %}
-                    {% if user.id %}
+                    {% if request.user.is_active %}
                     <li class="nav-item">
-                        <a class="nav-link" aria-current="page" href="{% url 'logout' %}">Logout</a>
+                        <a class="nav-link" aria-current="page" href="{% url 'core:logout' %}">Logout</a>
                     </li>
                     {% else %}
                     <li class="nav-item">
-                        <a class="nav-link" aria-current="page" href="{% url 'login-page' %}">Login</a>
+                        <a class="nav-link" aria-current="page" href="{% url 'core:login-page' %}">Login</a>
                     </li>
                     {% endif %}
                 </ul>
