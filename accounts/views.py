@@ -93,6 +93,7 @@ def save_party(request):
         post = request.POST
         party_id = post.get('id','')
         user_id = post.get('user','')
+        print(user_id,type(user_id))
         if user_id:
             user = User.objects.get(pk=user_id)
             if party_id:
@@ -140,7 +141,7 @@ def delete_party(request, pk=None):
         party = Party.objects.select_related('user').filter(pk = pk)
         if party:
             if request.user.is_superuser or party.user == request.user and request.user.has_perm('accounts.add_party') or (request.user.staffuser if hasattr(request.user, 'staffuser') else False) and (party.user.assigned_staff.user if hasattr(party.user.assigned_staff, 'user') else None)==request.user:            
-                if party.delete_flag == 0:
+                if party[0].delete_flag == 0:
                     try:
                         party.update(delete_flag=1)
                         messages.success(request, "Party has been moved to recycle bin successfully.")
@@ -755,6 +756,7 @@ def save_product(request):
         user_id = data.get('user_id','')
         name = data.get('name','')
         quantity = data.get('quantity','')
+        print(name,user_id)
         if quantity == '':
             quantity = 0
         if id == '':
@@ -766,6 +768,7 @@ def save_product(request):
                 
             try:
                 Product.objects.create(user=user,name=name,quantity=quantity)
+                resp['msg'] = "product was created successfully"
             except:
                 resp['msg'] = "Product Alredy Exists, Check your Recycle Bin"
                 return JsonResponse(resp)
@@ -780,6 +783,7 @@ def save_product(request):
                     product.name = name
                     product.quantity = quantity
                     product.save()
+                    resp['msg'] = "product was updated successfully"
             except:
                 resp['msg'] = "Couldn't Update Product"
                 return JsonResponse(resp)

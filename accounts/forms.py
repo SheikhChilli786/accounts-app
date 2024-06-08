@@ -23,6 +23,17 @@ class SaveParty(forms.ModelForm):
         model = models.Party
         fields = ['user', 'name', 'phone_number', 'address']
 
+    def clean(self):
+        cleaned_data = super().clean()
+        user = cleaned_data.get('user')
+        name = cleaned_data.get('name')
+        print(user,name)
+        # Check if the combination of field1 and field2 values already exists
+        if models.Party.objects.filter(user=user, name=name).exists():
+            raise forms.ValidationError("This combination of field1 and field2 already exists.")
+
+        return cleaned_data
+
 class SaveForm(forms.ModelForm):
     description = forms.TextInput()
     debit = forms.IntegerField(required=False)
