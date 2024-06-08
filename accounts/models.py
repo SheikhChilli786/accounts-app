@@ -50,7 +50,7 @@ class Product(models.Model):
         return self.name
     
     def save(self, *args, **kwargs):
-        self.name = self.name.lower()
+        self.name = self.name.lower().strip()
         super().save(*args, **kwargs)
     
     class Meta:
