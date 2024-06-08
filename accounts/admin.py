@@ -10,3 +10,6 @@ class adminTransaction(admin.ModelAdmin):
 @admin.register(models.Form)
 class adminForm(admin.ModelAdmin):
     pass
+@admin.register(models.Product)
+class adminProduct(admin.ModelAdmin):
+    pass

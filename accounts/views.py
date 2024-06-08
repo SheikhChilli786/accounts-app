@@ -755,17 +755,19 @@ def save_product(request):
         user_id = data.get('user_id','')
         name = data.get('name','')
         quantity = data.get('quantity','')
-        print(id , user_id,name,quantity)
+        if quantity == '':
+            quantity = 0
         if id == '':
             try:
                 user = User.objects.get(id=user_id)
             except:
                 resp['msg'] = "User Couldn't be found"
                 return JsonResponse(resp)
+                
             try:
                 Product.objects.create(user=user,name=name,quantity=quantity)
             except:
-                resp['msg'] = "Couldn't Add product"
+                resp['msg'] = "Product Alredy Exists, Check your Recycle Bin"
                 return JsonResponse(resp)
         else:
             try:
