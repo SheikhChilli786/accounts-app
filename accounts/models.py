@@ -44,7 +44,7 @@ class Form(models.Model):
 class Product(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.CASCADE)
     name = models.CharField(max_length=255)
-    quantity = models.PositiveIntegerField(defaul=0)
+    quantity = models.PositiveIntegerField(default=0)
     delete_flag = models.IntegerField(default=0)
     def __str__(self) -> str:
         return self.name
