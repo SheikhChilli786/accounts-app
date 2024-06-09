@@ -165,9 +165,28 @@
                                     } );
                                     var length = doc.content[3].table.body.length
                                     var lastValue = doc.content[3].table.body[length-1][0].text
-                                    doc.content[3].table.body.push(Array(lastValue,"","","",""))
-                                    doc.content[3].layout = 'lightHorizontalLines'
-                                }
+                                    doc.content[3].table.body.push(Array(lastValue,"میذان","","",""))
+                                    doc.content[3].layout = {
+                                hLineWidth: function (i, node) {
+                                    return (i === 0 ||  i === node.table.body.length) ? 2 : 1;
+                                },
+                                vLineWidth: function (i, node) {
+                                    return (i === 0 || i === node.table.widths.length) ? 2 : 1;
+                                },
+                                hLineColor: function (i, node) {
+                                    return (i === 0  || i===node.table.body.length ) ? 'black' : 'gray';
+                                },
+                                vLineColor: function (i, node) {
+                                    return (i === 0 || i === node.table.widths.length) ? 'black' : 'gray';
+                                },
+                                // hLineStyle: function (i, node) {  if( i===node.table.body.length-2 || i === node.table.body.length-3 || i===node.table.body.length-1 ) return {dash: { length: 10, space: 4 }}; },
+                                // vLineStyle: function (i, node) { return {dash: { length: 10, space: 4 }}; },
+                                // paddingLeft: function(i, node) { return 4; },
+                                // paddingRight: function(i, node) { return 4; },
+                                // paddingTop: function(i, node) { return 2; },
+                                // paddingBottom: function(i, node) { return 2; },
+                                // fillColor: function (rowIndex, node, columnIndex) { return null; }
+                            }                                  }
                             }
                         ]  
                 }}, 
