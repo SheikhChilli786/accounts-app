@@ -499,7 +499,7 @@ def save_trade(request):
                 try:
         
                     with transaction.atomic():
-                        trade.update(party=party,description=description,debit=(total if validate_total() else calc_total),form=form_obj,discount=discount,is_sales=True,charges=charges)
+                        trade.update(party=party,description=description,credit=(total if validate_total() else calc_total),form=form_obj,discount=discount,is_sales=True,charges=charges)
                         prev_items = TradeItem.objects.filter(trade=trade[0])
                         for item in prev_items:
                             products.filter(pk=item.product.pk).update(quantity= F('quantity')-item.quantity)
@@ -526,7 +526,7 @@ def save_trade(request):
             elif state == 'off' and request.user.is_superuser or party.user == request.user and request.user.has_perm('accounts.can_manage_transactions') or (request.user.staffuser if hasattr(request.user, 'staffuser') else False) and (party.user.assigned_staff.user if hasattr(party.user.assigned_staff, 'user') else None)==request.user:
                 try:
                     with transaction.atomic():
-                        trade.update(party=party,description=description,credit=(total if validate_total() else calc_total),form=form_obj,discount=discount,is_sales=False,charges = charges)
+                        trade.update(party=party,description=description,debit=(total if validate_total() else calc_total),form=form_obj,discount=discount,is_sales=False,charges = charges)
                         prev_items = TradeItem.objects.filter(trade=trade[0])
                         for item in prev_items:
                             products.filter(pk=item.product.pk).update(quantity= F('quantity')-item.quantity)
@@ -572,7 +572,7 @@ def save_trade(request):
                             bill_number=bill,
                             party=party,
                             description=description,
-                            debit=(total if validate_total() else calc_total),
+                            credit=(total if validate_total() else calc_total),
                             form=form_obj,
                             discount=discount,
                             charges=charges,
@@ -599,7 +599,7 @@ def save_trade(request):
             elif state == "off" and request.user.is_superuser or party.user == request.user and request.user.has_perm('accounts.can_manage_purchase') or (request.user.staffuser if hasattr(request.user, 'staffuser') else False) and (party.user.assigned_staff.user if hasattr(party.user.assigned_staff, 'user') else None)==request.user:
                 try:
                     with transaction .atomic():
-                        trade = Transaction.objects.create(bill_number=bill,party=party,description=description,credit=(total if validate_total() else calc_total),form=form_obj,discount=discount,is_sales=False,charges=charges)
+                        trade = Transaction.objects.create(bill_number=bill,party=party,description=description,debit=(total if validate_total() else calc_total),form=form_obj,discount=discount,is_sales=False,charges=charges)
                         trade_items = [
                             TradeItem(
                                 trade=trade,

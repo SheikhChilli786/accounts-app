@@ -13,3 +13,6 @@ class adminForm(admin.ModelAdmin):
 @admin.register(models.Product)
 class adminProduct(admin.ModelAdmin):
     pass
+@admin.register(models.TradeItem)
+class adminItems(admin.ModelAdmin):
+    pass
