@@ -646,7 +646,7 @@ def sales_list(request):
                     sales = Transaction.objects.select_related('party__user').filter(delete_flag=0,party__delete_flag=0,form__created_at=selected_date,party__user = user,is_sales=True)
                 transaction_data = [{'party': transaction.party.name,
                                     'description': transaction.description,
-                                    'debit': transaction.debit,
+                                    'debit': transaction.credit,
                                     'discount': transaction.discount,
                                     'date': transaction.form.created_at,
                                     'id':transaction.pk,
@@ -676,7 +676,7 @@ def purchases_list(request):
                     purchase = Transaction.objects.select_related('party__user').filter(delete_flag=0,party__delete_flag=0,form__created_at=selected_date,party__user = user,is_sales=False)
                 transaction_data = [{'party': transaction.party.name,
                                     'description': transaction.description,
-                                    'debit': transaction.credit,
+                                    'debit': transaction.debit,
                                     'discount': transaction.discount,
                                     'date': transaction.form.created_at,
                                     'id':transaction.pk,
