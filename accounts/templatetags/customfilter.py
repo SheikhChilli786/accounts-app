@@ -47,7 +47,7 @@ def multiply(value, arg):
 
 @register.filter
 def invoice_type(value):
-    if value == 0:
+    if value != 0:
         return "Purchase"
     else:
         return "Sale"

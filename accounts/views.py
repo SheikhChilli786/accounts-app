@@ -502,7 +502,7 @@ def save_trade(request):
                         trade.update(party=party,description=description,credit=(total if validate_total() else calc_total),form=form_obj,discount=discount,is_sales=True,charges=charges)
                         prev_items = TradeItem.objects.filter(trade=trade[0])
                         for item in prev_items:
-                            products.filter(pk=item.product.pk).update(quantity= F('quantity')-item.quantity)
+                            products.filter(pk=item.product.pk).update(quantity= F('quantity')+item.quantity)
                         prev_items.delete()
                         trade_items = [
                             TradeItem(
