@@ -131,7 +131,7 @@
  {% endblock pageContent %}
 <script>
 $(document).ready(function () {
-   
+    
     var clean_total = $('.total').text()
     var discount = $('.discount').text()
     var charges = $('.charges').text()
@@ -259,8 +259,6 @@ $(document).ready(function () {
             }
         ]        
     })
-    {% comment %} window.onafterprint = window.close;
-         window.print(); {% endcomment %}
 })
 function processDoc(doc) {
     pdfMake.fonts = {
