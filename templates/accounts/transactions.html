@@ -175,13 +175,13 @@
                                     doc.content[3].table.body.push(Array(lastValue,"میذان","","",""))
                                     doc.content[3].layout = {
                                         hLineWidth: function (i, node) {
-                                            return (i === 0 ||  i === node.table.body.length) ? 2 : 1;
+                                            return (i === 0 ||  i === node.table.body.length-1) ? 2 : 1;
                                         },
                                         vLineWidth: function (i, node) {
                                             return (i === 0 || i === node.table.widths.length) ? 2 : 1;
                                         },
                                         hLineColor: function (i, node) {
-                                            return (i === 0  || i===node.table.body.length ) ? 'black' : 'gray';
+                                            return (i === 0  || i===node.table.body.length-1 ) ? 'black' : 'gray';
                                         },
                                         vLineColor: function (i, node) {
                                             return (i === 0 || i === node.table.widths.length) ? 'black' : 'gray';
