@@ -17,11 +17,25 @@
         <div class="card rounded-0 shadow">
             <div class="card-body">
                 <div class="container-fluid">
-                {% if perms.accounts.add_party or user.assigned_staff.user == request.user  %}
                     <div class="text-end mb-3">
                         <button class="btn rounded-0" type="button" id="create_new"><i class="fa fa-plus"></i> Add New Party</button>
                     </div>
-                {% endif %}
+                    <div class="form-group">
+                    <label for="filterCheckbox">Filter Records according to:</label>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="check-debit">
+                        <label class="form-check-label" for="checkbox1">
+                        Debit
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="check-credit">
+                        <label class="form-check-label" for="checkbox2">
+                        Credit
+                        </label>
+                    </div>
+                    </div>
+
                     <table class="display cell-border" class="table table-bordered table-striped" style="width:100%" id="party-tbl">
                         <thead>
                             <tr>
@@ -63,17 +77,11 @@
                                           Action
                                         </button>
                                         <ul class="dropdown-menu" aria-labelledby="abtn{{party.pk}}">
-                                            {% if perms.accounts.view_party or party.user.assigned_staff.user == request.user %}
                                             <li>
                                             <a class="dropdown-item view-data-trans" href="{% url 'accounts:view-transactions' party.pk %}"><i class="fa fa-eye text-dark"></i>View Transactions</a>
                                             </li>
-                                            {% endif %}
-                                            {% if perms.accounts.change_party or party.user.assigned_staff.user == request.user %}
                                             <li><a class="dropdown-item edit-data" href="javascript:void(0)" data-url="{% url 'accounts:manage-party-pk' party.pk %}"><i class="fa fa-edit text-primary"></i> Edit</a></li>
-                                            {% endif %}
-                                            {% if perms.accounts.delete_party or party.user.assigned_staff.user == request.user %}
                                             <li><a class="dropdown-item delete-data" href="javascript:void(0)" data-url="{% url 'accounts:delete-party' party.pk %}"><i class="fa fa-trash text-danger"></i> Delete</a></li>
-                                            {% endif %}
                                         </ul>
                                     </div>
                                 
@@ -90,7 +98,6 @@
 </section>
 {% endblock pageContent %} {% block ScriptBlock %}
 <script>
-    
     $(function() {
          $('#new_form_manage_s_p').click(function(){
             $.ajax({
@@ -143,6 +150,23 @@
                     }
                 }
             });
+        })
+        $('#check-debit').on('change',function(){
+            if ($(this).prop('checked')){
+                dataTable.search("(+)").draw()
+                 $('#check-credit').prop('checked',false)
+
+            }else{
+                dataTable.search("").draw()
+            }
+        })
+        $('#check-credit').on('change',function(){
+            if ($(this).prop('checked')){
+                dataTable.search("(-)").draw()
+                 $('#check-debit').prop('checked',false)
+            }else{
+                dataTable.search("").draw()
+            }
         })
         $('#new_form_product').click(function(){
             window.location.href = "{% url 'accounts:products-pk' pk=user.id %}"

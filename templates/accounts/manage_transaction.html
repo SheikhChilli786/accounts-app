@@ -118,6 +118,7 @@
 </form>
 </div>
 <div class="container-fluid">
+    <div class="transaction_view_warning"></div>
     <button type="button" class="btn btn-secondary" id="toggleTransactions">
         View Recent Transactions
     </button>
@@ -130,7 +131,12 @@
 </body>
 <script>
     $(document).ready(function () {
-       
+    $("input[type='text']").on("focus", function() { 
+            $(this).select(); 
+        });
+    $("input[type='number']").on("focus", function() { 
+            $(this).select(); 
+        });
     $('#toggleTransactions').click(function () {
         var container = $('#transactionListContainer');
         var button = $(this);
@@ -192,45 +198,6 @@
                 return false;
             }
             
-            start_loader();
-            $.ajax({
-                headers: {
-                    "X-CSRFToken": '{{csrf_token}}'
-                },
-                url: "{% url 'accounts:save-transaction' %}",
-                data: new FormData($(this)[0]),
-                cache: false,
-                contentType: false,
-                processData: false,
-                method: 'POST',
-                type: 'POST',
-                dataType: 'json',
-                error: err => {
-                    console.log(err)
-                    alert("An error occured", 'error');
-                    end_loader();
-                },
-                success: function(resp) {
-                    if (typeof resp === 'object' && resp.status === 'success') {
-                        $('#date').val(localStorage.getItem('date'));
-                        $('#name').focus();
-                        $('#id').val('');
-                        $('#name').val('');
-                        $('#credit').val('');
-                        $('#description').val('');
-                        $('#debit').val('');
-
-                        initializeDataTable()
-                        end_loader();
-                    } else {
-                        el.text("An error occurred", 'error');
-                        _this.prepend(el)
-                        el.show('slow')
-                        $("html, body, .modal").scrollTop(0);
-                        end_loader();
-                    }
-                }
-            })
              $('#date, #name, #description, #debit, #credit').prop('disabled', false);
 
             
@@ -243,7 +210,51 @@
                     $('#debit, #credit').removeClass('border border-danger');
 
                     // Append data to the list
-                
+                    start_loader();
+                    $.ajax({
+                        headers: {
+                            "X-CSRFToken": '{{csrf_token}}'
+                        },
+                        url: "{% url 'accounts:save-transaction' %}",
+                        data: new FormData($(this)[0]),
+                        cache: false,
+                        contentType: false,
+                        processData: false,
+                        method: 'POST',
+                        type: 'POST',
+                        dataType: 'json',
+                        error: err => {
+                            console.log(err)
+                            alert("An error occured", 'error');
+                            end_loader();
+                        },
+                        success: function(resp) {
+                            if (typeof resp === 'object' && resp.status === 'success') {
+                                $('#date').val(localStorage.getItem('date'));
+                                $('#name').focus();
+                                $('#id').val('');
+                                $('#name').val('');
+                                $('#credit').val('');
+                                $('#description').val('');
+                                $('#debit').val('');
+
+                                initializeDataTable()
+                                end_loader();
+                            } else {
+                                el.text(resp.msg);
+                                _this.prepend(el)
+                                el.show('slow')
+                                $("html, body, .modal").scrollTop(0);
+                                $('#id').val('');
+                                $('#name').val('');
+                                $('#credit').val('');
+                                $('#description').val('');
+                                $('#debit').val('');
+                                end_loader();
+                            }
+                        }
+                    })
+
                     // Clear form fields
                 } else {
                     // Group "Credit" and "Debit" fields together in an outline
@@ -296,6 +307,12 @@
             if(selectedDate=='' || selectedDate == null){
             selectedDate = '2000-01-01'
             }
+            var _this = $('.transaction_view_warning')
+            $('.err-msg').remove();
+            var el = $('<div>')
+            el.addClass("alert alert-danger err-msg")
+            el.hide()
+            
             // AJAX request to fetch transactions based on the selected date
             $.ajax({
                 url: '{% url "accounts:transaction_list" %}',
@@ -305,102 +322,125 @@
                 dataType: 'json',
                 success: function (data) {
                     // Clear existing transaction list
-                    $('#transactionList').empty();
+                    if(data.status == 'success'){
+                            $('#transactionList').empty();
 
-                    // Populate the transaction list with the fetched data
-                    var transactionHtml = '<table class="display cell-border" style="width:100%" id="transaction-tbl">';
-                    transactionHtml += '<thead><tr><th>#</th><th>Date</th><th>Name</th><th>Description</th><th>Debit</th><th>Credit</th><th>Action</th></tr></thead>';
-                    transactionHtml += '<tbody>';
-                    
-                    $.each(data.transactions, function (index, transaction) {
-                        transactionHtml += '<tr id="tbl-row">';
-                        transactionHtml += '<td>' + (index+1) + '</td>';
-                        transactionHtml += '<td>'  +transaction.date+ '</td>';
-                        transactionHtml += '<td>'  +transaction.party+ '</td>';
-                        transactionHtml += '<td>' + transaction.description + '</td>';
-                        transactionHtml += '<td>' + transaction.debit + '</td>';
-                        transactionHtml += '<td>' + transaction.credit + '</td>';
-                        transactionHtml += '<td>' +
-                                    '<div class="btn-group" role="group" aria-label="Edit and Delete buttons">' +
-                                    '<button class="btn btn-light btn-sm rounded-0 border edit-data-transaction" data-url="/manage_transaction/' + transaction.id + '" type="button">' +
-                                    '<i class="fa fa-pencil text-secondary"></i>' +
-                                    '</button>' +
-                                    '<button class="btn btn-light btn-sm rounded-0 border delete-data-transaction" data-url="/delete_transaction/' + transaction.id + '" type="button">' +
-                                    '<i class="fa fa-trash text-danger"></i>' +
-                                    '</button>' +
-                                    '</div>' +
-                                    '</td>';
-                        transactionHtml += '</tr>';
-                    });
+                            // Populate the transaction list with the fetched data
+                            var transactionHtml = '<table class="display cell-border" style="width:100%" id="transaction-tbl">';
+                            transactionHtml += '<thead><tr><th>#</th><th>Date</th><th>Name</th><th>Description</th><th>Debit</th><th>Credit</th><th>Action</th></tr></thead>';
+                            transactionHtml += '<tbody>';
+                            
+                            $.each(data.transaction_data, function (index, transaction) {
+                                transactionHtml += '<tr id="tbl-row">';
+                                transactionHtml += '<td>' + (index+1) + '</td>';
+                                transactionHtml += '<td>'  +transaction.date+ '</td>';
+                                transactionHtml += '<td>'  +transaction.party+ '</td>';
+                                transactionHtml += '<td>' + transaction.description + '</td>';
+                                transactionHtml += '<td>' + transaction.debit + '</td>';
+                                transactionHtml += '<td>' + transaction.credit + '</td>';
+                                transactionHtml += '<td>' +
+                                            '<div class="btn-group" role="group" aria-label="Edit and Delete buttons">' +
+                                            '<button class="btn btn-light btn-sm rounded-0 border edit-data-transaction" data-url="/manage_transaction/' + transaction.id + '" type="button">' +
+                                            '<i class="fa fa-pencil text-secondary"></i>' +
+                                            '</button>' +
+                                            '<button class="btn btn-light btn-sm rounded-0 border delete-data-transaction" data-url="/delete_transaction/' + transaction.id + '" type="button">' +
+                                            '<i class="fa fa-trash text-danger"></i>' +
+                                            '</button>' +
+                                            '</div>' +
+                                            '</td>';
+                                transactionHtml += '</tr>';
+                            });
 
-                    $('#tbl-row').after(transactionHtml);
-                    transactionHtml += '</tbody>';
-                    transactionHtml += '</table>';
-                    $('#transactionList').append(transactionHtml);
-                    // Append the entire HTML content after the loop
-                    var dataTable = $('#transaction-tbl').DataTable({
-                        responsive: {
-                            details: {
-                                type: 'column',
-                                target: 'tr'
-                            }
-                        },
-                        rowGroup: {
-                            dataSrc: 1
-                        },
-                        columnDefs: [
-                            {
-                                orderable: false,
-                                targets: [1,2,3,4,5]
-                            },
-                            { "width": "150px", "targets": 2 }, // Set width for the first column
-                            { "width": "70px", "targets": 4 }, // Set width for the second column
-                            { "width": "50px", "targets": 6 },   // Set width for the third column
-                            { "width": "70px", "targets": 5 },
-                            { responsivePriority: 1, targets: 1 },
-                            { responsivePriority: 2, targets: -1 },
-                        ],
-                        order: [
-                            [1, 'desc'], // Sorting by target 1 in descending order
-                            [0, 'desc']   // Then sorting by target 0 in ascending order
-                        ],
-                        paging:true
-                    })
-                    var hideColumnIndex = 0;
-                    var column = dataTable.column(hideColumnIndex);
-                    column.visible(false);
-                    var hide2ColumnIndex = 1;
-                    var column2 = dataTable.column(hide2ColumnIndex);
-                    column2.visible(false);
-                    $('#transactionList').off('click', '.edit-data-transaction').on('click', '.edit-data-transaction', function() {
-                        $.ajax({
-                            url: $(this).attr('data-url'),
-                            method: 'GET',
-                            data: {
-                                'user_id': {{user_id}},
-                            },
-                            error: err =>{
-                                    alert("An error occured")
+                            $('#tbl-row').after(transactionHtml);
+                            transactionHtml += '</tbody>';
+                            transactionHtml += '</table>';
+                            $('#transactionList').append(transactionHtml);
+                            // Append the entire HTML content after the loop
+                            var dataTable = $('#transaction-tbl').DataTable({
+                                responsive: {
+                                    details: {
+                                        type: 'column',
+                                        target: 'tr'
+                                    }
                                 },
-                            success: function(resp){
-                                if(resp){
-                                    $('#name').val(resp.transaction.party);
-                                    $('#description').val(resp.transaction.description);
-                                    $('#debit').val(resp.transaction.debit);
-                                    $('#credit').val(resp.transaction.credit);
-                                    $('#id').val(resp.transaction.id);
-                                    $('#date').val(resp.transaction.date)
-                                    initializeDataTable()
-                                    end_loader()
-                                }
-                            }
-                        });
-                    });
-                    $('#transactionList').on('click', '.delete-data-transaction',function() {
-                        $('#myModal').modal('hide');
-                         _conf("Are you sure to delete this Transaction?", 'delete_transaction', ["'" + $(this).attr('data-url') + "'"])
-                    })
-                    
+                                rowGroup: {
+                                    dataSrc: 1
+                                },
+                                columnDefs: [
+                                    {
+                                        orderable: false,
+                                        targets: [1,2,3,4,5]
+                                    },
+                                    { "width": "150px", "targets": 2 }, // Set width for the first column
+                                    { "width": "70px", "targets": 4 }, // Set width for the second column
+                                    { "width": "50px", "targets": 6 },   // Set width for the third column
+                                    { "width": "70px", "targets": 5 },
+                                    { responsivePriority: 1, targets: 1 },
+                                    { responsivePriority: 2, targets: -1 },
+                                ],
+                                order: [
+                                    [1, 'desc'], // Sorting by target 1 in descending order
+                                    [0, 'desc']   // Then sorting by target 0 in ascending order
+                                ],
+                                paging:true
+                            })
+                            var hideColumnIndex = 0;
+                            var column = dataTable.column(hideColumnIndex);
+                            column.visible(false);
+                            var hide2ColumnIndex = 1;
+                            var column2 = dataTable.column(hide2ColumnIndex);
+                            column2.visible(false);
+                            $('#transactionList').off('click', '.edit-data-transaction').on('click', '.edit-data-transaction', function() {
+                                var _this = $('#transactionForm')
+                                $('.err-msg').remove();
+                                var el = $('<div>')
+                                el.addClass("alert alert-danger err-msg")
+                                el.hide()
+                                
+                                $.ajax({
+                                    url: $(this).attr('data-url'),
+                                    method: 'GET',
+                                    data: {
+                                        'user_id': {{user_id}},
+                                    },
+                                    error: err =>{
+                                            alert("An error occured")
+                                        },
+                                    success: function(resp){
+                                        if(resp.status == 'success'){
+                                            $('#name').val(resp.party);
+                                            $('#description').val(resp.description);
+                                            $('#debit').val(resp.debit);
+                                            $('#credit').val(resp.credit);
+                                            $('#id').val(resp.id);
+                                            $('#date').val(resp.date)
+                                            if(resp.debit == 0){
+                                                $('#credit').trigger('input')
+                                            }else{
+                                                $('#debit').trigger('input')
+                                            }
+                                            initializeDataTable()
+                                            end_loader()
+                                        }else{
+                                            el.text(resp.msg);
+                                            _this.prepend(el)
+                                            el.show('slow')
+                                            end_loader();
+                                        }
+                                    }
+                                });
+                            });
+                            $('#transactionList').on('click', '.delete-data-transaction',function() {
+                                $('#myModal').modal('hide');
+                                _conf("Are you sure to delete this Transaction?", 'delete_transaction', ["'" + $(this).attr('data-url') + "'"])
+                            })
+                            
+                    }else{
+                        el.text(data.msg);
+                        _this.prepend(el)
+                        el.show('slow')
+                        end_loader()
+                    }
                 },
                 error: function (error) {
                     console.error('Error fetching transactions:', error);

@@ -39,26 +39,27 @@ def user_detail(request, pk=None):
     if pk:
         try:
             user = User.objects.get(pk=pk)
-            if (user.assigned_staff.user if hasattr(user.assigned_staff, 'user') else None)==request.user or request.user.is_superuser:
-                context['parties'] = Party.objects.select_related('user').filter(user = user)
-                context['page_name'] = user
-                context['user'] = user
-                options.append(('product','Product')) 
-                options.append(('manage_transactions','Manage Transactions')) 
-                options.append(('manage_s_p','Manage Sale/purchases')) 
-            else:
-                return redirect('accounts:user-detail')
         except User.DoesNotExist:
             return HttpResponse(status=204)
+        if (user.assigned_staff.user if hasattr(user.assigned_staff, 'user') else None)==request.user or request.user.is_superuser:
+            context['parties'] = Party.objects.select_related('user').filter(user = user)
+            context['page_name'] = user
+            context['user'] = user
+            options.append(('product','Product')) if (request.user.has_perm('accounts.add_product') or request.user == user) else None
+            options.append(('manage_transactions','Manage Transactions')) if (request.user.has_perm('accounts.can_manage_transactions') or request.user == user) else None
+            options.append(('manage_s_p','Manage Sale/purchases')) if (request.user.has_perm('accounts.can_manage_s_p') or request.user == user) else None 
+        else:
+            return redirect('accounts:user-detail')
     else:
         if (request.user.staffuser if hasattr(request.user, 'staffuser') else False) or request.user.is_superuser:
                 return HttpResponse(status=204)
+        user = User.objects.get(pk = request.user.pk)
         context['parties'] = Party.objects.filter(user = request.user)
         context['page_name'] = request.user
         context['user'] = request.user
-        options.append(('product','Product')) 
-        options.append(('manage_transactions','Manage Transactions')) if request.user.has_perm('accounts.can_manage_transactions') else None
-        options.append(('manage_s_p','Manage Sale/purchases')) if request.user.has_perm('accounts.can_manage_s/p') else None
+        options.append(('product','Product')) if (request.user.has_perm('accounts.add_product') or request.user == user) else None
+        options.append(('manage_transactions','Manage Transactions')) if (request.user.has_perm('accounts.can_manage_transactions') or request.user == user) else None
+        options.append(('manage_s_p','Manage Sale/purchases')) if (request.user.has_perm('accounts.can_manage_s_p') or request.user == user) else None
     context['options'] = options
     return render(request,'accounts/party.html',context)
 
@@ -69,18 +70,24 @@ def manage_party(request,pk=None):
     context['page_title'] = 'Manage User'
 
     if pk :
-        party = Party.objects.select_related('user').get(pk=pk)
+        try:
+            party = Party.objects.select_related('user').get(pk=pk)
+        except:
+            HttpResponse(status=204)
         if party:
-            if request.user.is_superuser or (request.user.staffuser if hasattr(request.user, 'staffuser') else False) and (party.user.assigned_staff.user if hasattr(party.user.assigned_staff, 'user') else None)==request.user or request.user == party.user and request.user.has_perm('accounts.change_party'):
+
+            if request.user.is_superuser or  (party.user.assigned_staff.user if hasattr(party.user.assigned_staff, 'user') else None==request.user and request.user.has_perm('accounts.change_party')) or request.user == party.user :
                     context['party'] = party
             else:
-                HttpResponse("You are not Authorized to Edit This Party")
+                return HttpResponse("You are not Authorized to Edit This Party")
         else:
             return HttpResponse("The party is invalid")        
           
     else:
-        if request.user.is_superuser or (request.user.staffuser if hasattr(request.user, 'staffuser') else False) and (request.user.assigned_staff.user if hasattr(request.user.assigned_staff, 'user') else None)==request.user or  request.user.has_perm('accounts.add_party'):
-            context['user_id'] = request.GET.get('user_id')
+        user = User.objects.get(pk = request.GET.get('user_id'))
+
+        if request.user.is_superuser or  (user.assigned_staff.user if hasattr(user.assigned_staff, 'user') else None==request.user and  request.user.has_perm('accounts.add_party') or request.user == user ):
+            context['user_id'] = user.pk
         else:
             HttpResponse("You are not Authorized to Add This Party")
     return render(request, 'accounts/manage_party.html', context)
@@ -93,18 +100,25 @@ def save_party(request):
         post = request.POST
         party_id = post.get('id','')
         user_id = post.get('user','')
-        print(user_id,type(user_id))
         if user_id:
-            user = User.objects.get(pk=user_id)
+            try:
+                user = User.objects.get(pk=user_id)
+            except:
+                resp['msg'] = "User couldn't be found. Please Try Again After Refresh"
+                return JsonResponse(resp)
             if party_id:
-                party = Party.objects.select_related('user').get(pk=party_id)
-                if request.user.is_superuser or party.user == request.user and request.user.has_perm('accounts.change_party') or (request.user.staffuser if hasattr(request.user, 'staffuser') else False) and (party.user.assigned_staff.user if hasattr(party.user.assigned_staff, 'user') else None)==request.user:
+                try:
+                    party = Party.objects.select_related('user').get(pk=party_id)
+                except:
+                    resp['msg'] = "Party coludn't be found. Please Try Again After Refresh"
+                    return JsonResponse(resp)
+                if request.user.is_superuser or party.user == request.user or (party.user.assigned_staff.user if hasattr(party.user.assigned_staff, 'user') else None==request.user and request.user.has_perm('accounts.change_party')):
                     form = SaveParty(post, instance=party)
                 else:
                     resp['msg'] = "You are not authorized to edit Party"
                     return JsonResponse(resp)
             else:
-                if request.user.is_superuser or user == request.user and request.user.has_perm('accounts.add_party') or (request.user.staffuser if hasattr(request.user, 'staffuser') else False) and (user.assigned_staff.user if hasattr(user.assigned_staff, 'user') else None)==request.user:
+                if request.user.is_superuser or user == request.user  or  (user.assigned_staff.user if hasattr(user.assigned_staff, 'user') else None==request.user and request.user.has_perm('accounts.add_party')):
                     form = SaveParty(post)
                 else:
                     resp['msg'] = "You are not authorized to Add Party"
@@ -140,7 +154,7 @@ def delete_party(request, pk=None):
     if pk:
         party = Party.objects.select_related('user').filter(pk = pk)
         if party:
-            if request.user.is_superuser or party.user == request.user and request.user.has_perm('accounts.add_party') or (request.user.staffuser if hasattr(request.user, 'staffuser') else False) and (party.user.assigned_staff.user if hasattr(party.user.assigned_staff, 'user') else None)==request.user:            
+            if request.user.is_superuser or party.user == request.user  or (party.user.assigned_staff.user if hasattr(party.user.assigned_staff, 'user') else None==request.user and request.user.has_perm('accounts.delete_party')):
                 if party[0].delete_flag == 0:
                     try:
                         party.update(delete_flag=1)
@@ -153,9 +167,11 @@ def delete_party(request, pk=None):
                     messages.success(request,"Party has been deleted successfully.")
                     resp['status'] = 'success'
             else:
-                return HttpResponse(status=204)
+                resp['msg'] = "You are not authorized to delete party."
+                return JsonResponse(resp)
         else:
-            return HttpResponse(status=204)
+            resp['msg'] = "Party couldn't be found. Please Try agin after refresh"
+            return JsonResponse(resp)
     
     else:
         resp['msg'] = "There's no data sent in the request"
@@ -167,44 +183,47 @@ def manage_transaction(request, pk=None):
     context = context_data(request)
     context['page'] = 'manage_transaction'
     context['page_title'] = 'Manage Transaction'
-    
     user_id = request.GET.get('user_id', '')
     try:
         user = User.objects.get(pk=user_id)
     except User.DoesNotExist:
-        return HttpResponse(status=204)
+        return HttpResponse("The user Couldn't be found. Please Refresh and Try again")
 
     if pk is None:
         # Adding a new transaction
-        if (request.user.is_superuser or 
-            (user == request.user and request.user.has_perm('accounts.add_transaction')) or
-            (hasattr(request.user, 'staffuser')  and
-             user.assigned_staff.user == request.user)):
+        if request.user.is_superuser or request.user == user or  (user.assigned_staff.user if hasattr(user.assigned_staff,'user') else False == request.user and request.user.has_perm('accounts.can_manage_transactions')):
             
             context['user_id'] = user.id
             context['parties'] = Party.objects.filter(user=user, delete_flag=0)
         else:
             return HttpResponse("You are not allowed to manage Transactions. Please contact admin for further queries")
     else:
+        resp = {
+            'msg':"",
+            'status':'failed'
+        }
         # Editing an existing transaction
         if (request.user.is_superuser or 
-            (user == request.user and request.user.has_perm('accounts.change_transaction')) or
-            (hasattr(request.user, 'staffuser')  and
-             user.assigned_staff.user == request.user)):
-            transaction = get_object_or_404(Transaction, pk=pk)
+            user == request.user or
+            ((request.user.has_perm('accounts.change_transaction')  and
+            user.assigned_staff.user if hasattr(user.assigned_staff,'user') else False == request.user))):
+            try:
+                transaction = Transaction.objects.get(pk=pk)
+            except:
+                resp['msg'] = "Transaction Couldn't be Found. Please Try again after refreshing"
             context['user_id'] = user.id
-            transaction_data =      {'party': transaction.party.name,
-                                    'description': transaction.description,
-                                    'user': transaction.party.user.username,
-                                    'debit': transaction.debit,
-                                    'credit': transaction.credit,
-                                    'date': transaction.form.created_at,
-                                    'id':transaction.pk}
-            
-            return JsonResponse({'transaction':transaction_data})
+            resp['party']= transaction.party.name,
+            resp['description']= transaction.description,
+            resp['user']= transaction.party.user.username,
+            resp['debit']= transaction.debit,
+            resp['credit']= transaction.credit,
+            resp['date']= transaction.form.created_at,
+            resp['id']=transaction.pk
+            resp['status'] = 'success'
+            return JsonResponse(resp)
         else:
-            return HttpResponse("You are not allowed to manage Transactions. Please contact admin for further queries")
-
+            resp['msg'] = "You are not authorized Edit Transactions"
+            return JsonResponse(resp)
     return render(request, 'accounts/manage_transaction.html', context)
 
 @login_required
@@ -220,19 +239,31 @@ def save_transaction(request):
         party = post.get('name', '')
         debit = post.get('debit','')
         credit = post.get('credit','')
+        if (debit == 0 and credit == 0) or (debit == '' and credit == ''):
+            resp['msg'] = "Please enter a valid amount"
+            return JsonResponse(resp)
+        
         if user_id:
-            party = Party.objects.get(name=party,user__id=user_id)
+            try:
+                party = Party.objects.get(name=party,user__id=user_id)
+            except:
+                resp['msg'] = "Party couldn't be found."
+                return JsonResponse(resp)
             if party:
                 form_obj, created = Form.objects.get_or_create(created_at=date)
                 if id:
-                    transaction = Transaction.objects.get(id = id)
-                    if request.user.is_superuser or party.user == request.user and request.user.has_perm('accounts.change_transaction') or (request.user.staffuser if hasattr(request.user, 'staffuser') else False) and (party.user.assigned_staff.user if hasattr(party.user.assigned_staff, 'user') else None)==request.user:
+                    try:
+                        transaction = Transaction.objects.get(id = id)
+                    except:
+                        resp['msg'] = "Transaction Couldn't be found. Please Try again After Refresh"
+                        return JsonResponse(resp)
+                    if request.user.is_superuser or party.user == request.user or  (party.user.assigned_staff.user if hasattr(party.user.assigned_staff, 'user') else None==request.user and request.user.has_perm('accounts.change_transaction')) :
                         form = SaveForm(post,instance=transaction)
                     else:
                         resp['msg'] = "You are not authorized to Edit Transaction "
                         return JsonResponse(resp)
                 else:
-                    if request.user.is_superuser or party.user == request.user and request.user.has_perm('accounts.add_transaction') or (request.user.staffuser if hasattr(request.user, 'staffuser') else False) and (party.user.assigned_staff.user if hasattr(party.user.assigned_staff, 'user') else None)==request.user:
+                    if request.user.is_superuser or party.user == request.user  or  (party.user.assigned_staff.user if hasattr(party.user.assigned_staff, 'user') else None==request.user and request.user.has_perm('accounts.add_transaction')):
                         form = SaveForm(post)
                     else:
                         resp['msg'] = "You are not authorized to Add transaction"
@@ -268,45 +299,56 @@ def save_transaction(request):
 @login_required
 def transaction_list(request):
     if request.method == 'GET':
+        resp = {
+            'msg' : "",
+            'status': 'failed'
+        }
         selected_date = request.GET.get('date')
         user_id = request.GET.get('user_id')
-        user = User.objects.get(pk=user_id)
+        try:
+            user = User.objects.get(pk=user_id)
+        except:
+            resp['msg'] = "User Couldn't be found. Please Try Again."
         if user:
-            if request.user.is_superuser or user == request.user and request.user.has_perm('accounts.add_transaction') or (request.user.staffuser if hasattr(request.user, 'staffuser') else False) and (user.assigned_staff.user if hasattr(user.assigned_staff, 'user') else None)==request.user:
+            if request.user.is_superuser or user == request.user or (user.assigned_staff.user if hasattr(user.assigned_staff, 'user') else None==request.user and request.user.has_perm('accounts.view_transaction') ):
                 if selected_date == '2000-01-01':
                     transactions = Transaction.objects.select_related('party__user').filter(delete_flag=0,party__delete_flag=0,party__user = user,is_sales=None)
                 else:
                     transactions = Transaction.objects.select_related('party__user').filter(delete_flag=0,party__delete_flag=0,form__created_at=selected_date,party__user = user,is_sales=None)
-                transaction_data = [{'party': transaction.party.name,
+                resp['transaction_data'] =[{'party': transaction.party.name,
                                     'description': transaction.description,
                                     'user': transaction.party.user.username,
                                     'debit': transaction.debit,
                                     'credit': transaction.credit,
                                     'date': transaction.form.created_at,
                                     'id':transaction.pk} for transaction in transactions]
-
-                return JsonResponse({'transactions': transaction_data})
+                resp['status'] = "success"
+                return JsonResponse(resp)
         
             else:
-                return JsonResponse({
-                    "msg" : "You are not authorized to view transaction"
-            })
+                resp['msg'] = "You are not authorized to view transaction"
+                return JsonResponse(resp)
         else:
             JsonResponse(status=204)
- 
+    else:
+        return HttpResponse (status=405)
 @login_required
 def delete_transaction(request,pk=None):
     resp = {
         'status':'failed',
         'msg':''
     } 
-    
+    state_on = False
+    state_off = False
+    state_none = False
     if pk:  
         transactions = models.Transaction.objects.select_related('party__user').filter(pk = pk)
-        if transactions:
+        if transactions[0]:
             items = TradeItem.objects.filter(trade=transactions[0])
             products = Product.objects.all()
-            if request.user.is_superuser or transactions[0].party.user == request.user and request.user.has_perm('accounts.delete_transaction') or (request.user.staffuser if hasattr(request.user, 'staffuser') else False) and (transactions[0].party.user.assigned_staff.user if hasattr(transactions[0].party.user.assigned_staff, 'user') else None)==request.user:   
+            
+            if transactions[0].is_sales ==True and (request.user.is_superuser or transactions[0].party.user == request.user  or  ((transactions[0].party.user.assigned_staff.user if hasattr(transactions[0].party.user.assigned_staff, 'user') else None)==request.user and request.user.has_perm('accounts.can_delete_sale'))):   
+                state_on = True
                 if transactions[0].delete_flag == 0:
                     try:
                         with transaction.atomic():
@@ -314,27 +356,75 @@ def delete_transaction(request,pk=None):
                             transactions.update(delete_flag =1)
                             items.update(delete_flag=1)
                             for item in items:
-                                products.filter(pk=item.product.pk).update(quantity=F('quantity')-item.quantity)
+                                products.filter(pk=item.product.pk).update(quantity=F('quantity')+item.quantity)
 
                     except:
 
-                        resp['msg'] = "Moving Transaction To RecycleBin Failed."
+                        resp['msg'] = "Moving Sale To RecycleBin Failed."
                         return JsonResponse(resp)
                 else:
                     try:
                         transactions.delete()
-                        for item in items:
-                            Product.objects.filter(pk=item.product.pk).update(quantity=F('quantity')-item.quantity)
                         items.delete()
 
-                        messages.success(request,"Transaction hasd been deleted successfully") 
+                        messages.success(request,"Transaction has been deleted successfully") 
                         resp['status'] = "success"
                     except:
                         resp['msg'] = 'Deleting Transaction failed'
                         return JsonResponse(resp)
-            else:  
-                resp['msg']= "you are not authorized to delete transactions"
-                return HttpResponse(json.dumps(resp))
+            if transactions[0].is_sales ==False and (request.user.is_superuser or transactions[0].party.user == request.user  or  (transactions[0].party.user.assigned_staff.user if hasattr(transactions[0].party.user.assigned_staff, 'user') else None==request.user and request.user.has_perm('accounts.can_delete_purchase'))):   
+                state_off = True
+                if transactions[0].delete_flag == 0:
+                    try:
+                        with transaction.atomic():
+                            transactions.update(delete_flag =1)
+                            items.update(delete_flag=1)
+                            for item in items:
+                                product = products.filter(pk=item.product.pk)
+                                if product[0].quantity - item.quantity < 0:
+                                    raise Exception
+                                else:
+                                    product.update(quantity=F('quantity')-item.quantity)
+
+                    except:
+
+                        resp['msg'] = "Moving Purchase To RecycleBin Failed. Sales can not be more then purchase. Please add new purchase before deleting this one or edit existing one"
+                        return JsonResponse(resp)
+                else:
+                    try:
+                        transactions.delete()
+                        items.delete()
+
+                        messages.success(request,"Transaction has been deleted successfully") 
+                        resp['status'] = "success"
+                    except:
+                        resp['msg'] = 'Deleting Transaction failed'
+                        return JsonResponse(resp)
+                    
+            if transactions[0].is_sales ==None and (request.user.is_superuser or transactions[0].party.user == request.user  or  (transactions[0].party.user.assigned_staff.user if hasattr(transactions[0].party.user.assigned_staff, 'user') else None==request.user and request.user.has_perm('accounts.delete_transaction'))):   
+                state_none = True
+                if transactions[0].delete_flag == 0:
+                    try:
+                        with transaction.atomic():
+                            transactions.update(delete_flag =1)
+                            items.update(delete_flag=1)
+                            for item in items:
+                                products.filter(pk=item.product.pk).update(quantity=F('quantity')-item.quantity)
+
+                    except:
+
+                        resp['msg'] = "Moving Purchase To RecycleBin Failed."
+                        return JsonResponse(resp)
+                else:
+                    try:
+                        transactions.delete()
+                        items.delete()
+
+                        messages.success(request,"Transaction has been deleted successfully") 
+                        resp['status'] = "success"
+                    except:
+                        resp['msg'] = 'Deleting Transaction failed'
+                        return JsonResponse(resp)
         else:
 
             resp['msg']= "No transaction found with the given id"
@@ -342,6 +432,17 @@ def delete_transaction(request,pk=None):
         
     else:
         resp['msg'] = "You are not authorized to delete Transaction"
+    
+    if transactions[0].is_sales == None and not state_none:
+        resp['msg'] = "you are not authorized to delete Transaction"
+        return JsonResponse(resp)
+    if transactions[0].is_sales == True and not state_on:
+        resp['msg'] = "you are not authorized to delete sale"
+        return JsonResponse(resp)
+    if transactions[0].is_sales == False and not state_off:
+        resp['msg'] = "you are not authorized to delete Purchase"
+        return JsonResponse(resp)
+
     party = Party.objects.get(id=transactions[0].party.pk)
     balance = party.get_balance()
     party.balance = balance
@@ -352,15 +453,16 @@ def delete_transaction(request,pk=None):
 @login_required
 def view_transactions(request,pk=None):
     if request.method == 'GET':
-        party = models.Party.objects.get(id=pk)
-        if party.user == request.user and request.user.has_perm('accounts.view_transaction') or request.user.is_superuser or (request.user.staffuser if hasattr(request.user, 'staffuser') else False) and (party.user.assigned_staff.user if hasattr(party.user.assigned_staff, 'user') else None)==request.user:
-            transactions = models.Transaction.objects.select_related('party').filter(delete_flag=0,party = party).order_by('form__created_at', 'time')
+        
+        party = models.Party.objects.filter(id=pk)
+        if party[0].user == request.user  or request.user.is_superuser or (party[0].user.assigned_staff.user if hasattr(party[0].user.assigned_staff, 'user') else None==request.user and request.user.has_perm('accounts.view_transaction')):
+            transactions = models.Transaction.objects.select_related('party').filter(delete_flag=0,party = party[0]).order_by('form__created_at', 'time')
             return render(request, 'accounts/transactions.html', {'transactions': transactions,"party":party})
         else:
             return HttpResponse(status=204)
         
     else:
-        return HttpResponse(status=403)
+        return HttpResponse(status=405)
    
 
 @login_required
@@ -369,34 +471,40 @@ def manage_sales_purchases(request,pk=None):
     context['page'] = 'manage_sales_purchases'
     context['page_title'] = 'Manage Sales/Purchases'
 
+    sales_on = False
+    sales_off = False
         
     user_id = request.GET.get('user_id', '')
     try:
         user = User.objects.get(pk=user_id)
     except User.DoesNotExist:
         return HttpResponse(status=204)
-    
     if pk is None:
         if (request.user.is_superuser or 
-            (user == request.user and request.user.has_perm('accounts.can_manage_s/p')) or
-            (hasattr(request.user, 'staffuser') and request.user.staffuser and
-             user.assigned_staff.user == request.user)):
+            (user == request.user) or
+            (user.assigned_staff.user if hasattr(user.assigned_staff,'user')  else False == request.user and request.user.has_perm('accounts.can_manage_s_p'))):
             
             context['user_id'] = user.id
             context['parties'] = Party.objects.filter(user=user, delete_flag=0)
             context['products'] = Product.objects.filter(user=user,delete_flag=0)
         else:
-            return HttpResponse("You are not allowed to manage Transactions. Please contact admin for further queries")
+            return HttpResponse("You are not allowed to manage Sales/purchases. Please contact admin for further queries")
 
     else:
-        if (request.user.is_superuser or 
-            (user == request.user and request.user.has_perm('accounts.change_transaction')) or
-            (hasattr(request.user, 'staffuser') and request.user.staffuser and
-            user.assigned_staff.user == request.user)):
-            try:
-                transaction = Transaction.objects.get(pk=pk)
-            except Transaction.DoesNotExist:
-                return JsonResponse({'status': 'failed', 'msg': 'Transaction is invalid'})
+        resp = {
+            'msg':"",
+            'status':'failed'
+        }
+        try:
+            transaction = Transaction.objects.get(pk=pk)
+        except Transaction.DoesNotExist:
+            return JsonResponse({'status': 'failed', 'msg': 'Transaction is invalid'})
+        
+        if transaction.is_sales == True and (request.user.is_superuser or 
+            (user == request.user ) or
+            (user.assigned_staff.user if hasattr(user.assigned_staff,'user') else False == request.user and request.user.has_perm('accounts.can_change_sale'))):
+            sales_on = True
+    
             transaction_items = TradeItem.objects.filter(trade=transaction)
             transaction_items_list = [
                 {
@@ -412,8 +520,6 @@ def manage_sales_purchases(request,pk=None):
                 'bill_number':transaction.bill_number,
                 'party': transaction.party.name,
                 'description': transaction.description,
-                'debit': transaction.debit,
-                'credit': transaction.credit,
                 'date': transaction.form.created_at,
                 'discount':transaction.discount,
                 'id': transaction.pk,
@@ -421,13 +527,45 @@ def manage_sales_purchases(request,pk=None):
                 'charges':transaction.charges
             }
 
-            return JsonResponse({
-                'status': 'success',
-                'msg': '',
-                'transaction': transaction_data
-            })
-        else:
-            return HttpResponse("You are not allowed to manage Transactions. Please contact admin for further queries")
+            
+        
+    
+        if transaction.is_sales == False and (request.user.is_superuser or 
+            (user == request.user ) or
+            (user.assigned_staff.user if hasattr(user.assigned_staff,'user') else False == request.user and request.user.has_perm('accounts.can_change_purchase'))):
+                    sales_off = True
+    
+                    transaction_items = TradeItem.objects.filter(trade=transaction)
+                    transaction_items_list = [
+                        {   
+                            'productName': item.product.name,
+                            'quantity': item.quantity,
+                            'price': item.price,
+                            'total': item.quantity *  item.price,
+
+                        } for item in transaction_items
+                    ]
+                    context['user_id'] = user.id
+                    transaction_data = {
+                        'bill_number':transaction.bill_number,
+                        'party': transaction.party.name,
+                        'description': transaction.description,
+                        'date': transaction.form.created_at,
+                        'discount':transaction.discount,
+                        'id': transaction.pk,
+                        'items': transaction_items_list,
+                        'charges':transaction.charges
+                    }
+
+        if transaction.is_sales == True and not sales_on:
+            resp['msg']="You are not authorized to edit sales"
+            return JsonResponse(resp)
+        if transaction.is_sales == False and not sales_off:
+            resp['msg']="You are not authorized to edit Purchase"
+            return JsonResponse(resp)
+        resp['transaction'] = transaction_data
+        resp['status'] = 'success'
+        return JsonResponse(resp)
 
     return render(request, 'accounts/manage_sales_purchase.html', context)
 
@@ -436,7 +574,6 @@ def manage_sales_purchases(request,pk=None):
 def save_trade(request):
     resp = {'status': 'failed', 'msg': ''}
     if request.method == 'POST':
-
         data = json.loads(request.body)
         id = data.get('id','')
         user_id = data.get('user_id','')
@@ -495,15 +632,19 @@ def save_trade(request):
             except Exception:
                 resp['msg'] = "Couldn't find any transaction"
                 return JsonResponse(resp)
-            if state == "on" and request.user.is_superuser or party.user == request.user and request.user.has_perm('accounts.can_manage_sales') or (request.user.staffuser if hasattr(request.user, 'staffuser') else False) and (party.user.assigned_staff.user if hasattr(party.user.assigned_staff, 'user') else None)==request.user:
+            if (state == "on" and trade[0].is_sales == True) and (request.user.is_superuser or party.user == request.user  or  (party.user.assigned_staff.user if hasattr(party.user.assigned_staff, 'user') else None==request.user and request.user.has_perm('accounts.can_change_sale'))):
+                state_on =True
                 try:
         
                     with transaction.atomic():
-                        trade.update(party=party,description=description,credit=(total if validate_total() else calc_total),form=form_obj,discount=discount,is_sales=True,charges=charges)
                         prev_items = TradeItem.objects.filter(trade=trade[0])
                         for item in prev_items:
                             products.filter(pk=item.product.pk).update(quantity= F('quantity')+item.quantity)
                         prev_items.delete()
+                        for item in items:
+                                product = products.filter(name=item['productName'])
+                                product.update(quantity=F('quantity')-item['quantity'])
+                        trade.update(party=party,description=description,credit=(total if validate_total() else calc_total),form=form_obj,discount=discount,is_sales=True,charges=charges)
                         trade_items = [
                             TradeItem(
                                 trade=trade[0],
@@ -512,50 +653,42 @@ def save_trade(request):
                                 price=item['price']
                             )  for item in items
                         ]
-                        for item in items:
-                                try:
-                                    products.filter(name=item['productName']).update(quantity=F('quantity')-item['quantity'])
-                                except:
-                                    resp['msg'] = f"Not enough {item['productName']} for this Sale"
-                                    return JsonResponse(resp)
                         TradeItem.objects.bulk_create(trade_items)
                         resp['msg'] = "Updated Sale Successfully"
                 except Exception:
                     resp['msg'] = f"Couldn't Update Sale"
                     return JsonResponse(resp)
-            elif state == 'off' and request.user.is_superuser or party.user == request.user and request.user.has_perm('accounts.can_manage_transactions') or (request.user.staffuser if hasattr(request.user, 'staffuser') else False) and (party.user.assigned_staff.user if hasattr(party.user.assigned_staff, 'user') else None)==request.user:
+            if (state == 'off' and trade[0].is_sales == False) and (request.user.is_superuser or user == request.user  or  (user.assigned_staff.user if hasattr(user.assigned_staff, 'user') else None==request.user and request.user.has_perm('accounts.can_change_purchase'))):
+                state_off = True
                 try:
                     with transaction.atomic():
-                        trade.update(party=party,description=description,debit=(total if validate_total() else calc_total),form=form_obj,discount=discount,is_sales=False,charges = charges)
                         prev_items = TradeItem.objects.filter(trade=trade[0])
                         for item in prev_items:
                             products.filter(pk=item.product.pk).update(quantity= F('quantity')-item.quantity)
                         prev_items.delete()
-                        
+                        for item in items:
+                                product = products.filter(name=item['productName'])
+                                product.update(quantity=F('quantity')+item['quantity'])
+                        trade.update(party=party,description=description,debit=(total if validate_total() else calc_total),form=form_obj,discount=discount,is_sales=False,charges=charges)
                         trade_items = [
                             TradeItem(
                                 trade=trade[0],
                                 product=products.filter(name=item['productName'])[0],
                                 quantity=item['quantity'],
                                 price=item['price']
-                            ) for item in items
+                            )  for item in items
                         ]
-                        for item in items:
-                            try:
-                                products.filter(name=item['productName']).update(quantity=F('quantity')+item['quantity'])
-                            except:
-                                resp['msg'] = f"Error Increses inventory of {item['productName']} "
-                                return JsonResponse(resp)
-                        TradeItem.objects.bulk_create(trade_items)
-
+                        TradeItem.objects.bulk_create(trade_items)                        
                     resp['msg'] = "Updated Purchase Successfully"
                 except Exception:
-                    resp['msg'] = "Couldn't Update Purchase"
+                    resp['msg'] = "COuldn't update purchase"
                     return JsonResponse(resp)
-            else:
-                resp['msg'] = "You don't have permission to upddate transactions"
+            if state == "on" and not state_on:
+                resp['msg'] = "You dont have authorization to update sale"
                 return JsonResponse(resp)
-
+            if state == "off" and not state_off:
+                resp['msg'] = "You dont have authorization to update purchase"
+                return JsonResponse(resp)
         else:
             if bill == None:
                 bill = 0
@@ -566,8 +699,22 @@ def save_trade(request):
                         bill = bill + 1
                     else:
                         bill =1
-            if state == "on" and request.user.is_superuser or party.user == request.user and request.user.has_perm('accounts.can_manage_sales') or (request.user.staffuser if hasattr(request.user, 'staffuser') else False) and (party.user.assigned_staff.user if hasattr(party.user.assigned_staff, 'user') else None)==request.user:
+            if state == "on" and (request.user.is_superuser or user == request.user or  (user.assigned_staff.user if hasattr(user.assigned_staff, 'user') else None)==request.user and request.user.has_perm('accounts.can_add_sale')) :
+                state_on = True
+                try:
                     with transaction.atomic():
+                        for item in items:
+                                try:
+                                    with transaction.atomic():
+                                        product = products.filter(name=item['productName'])
+                                        if product[0].quantity-item['quantity'] < 0:
+                                            raise Exception
+                                        else:
+                                            product.update(quantity=F('quantity')-item['quantity'])
+                                except:
+                                    resp['msg'] = f"Not enough {item['productName']} for this Sale"
+                                    return JsonResponse(resp)
+                                
                         trade = Transaction.objects.create(
                             bill_number=bill,
                             party=party,
@@ -586,17 +733,15 @@ def save_trade(request):
                                 price=item['price']
                             )  for item in items
                         ]
-                        for item in items:
-                                try:
-                                    products.filter(name=item['productName']).update(quantity=F('quantity')-item['quantity'])
-                                except:
-                                    resp['msg'] = f"Not enough {item['productName']} for this Sale"
-                                    return JsonResponse(resp)
                         TradeItem.objects.bulk_create(trade_items)
                     
                     resp['msg'] = "Created new Sale successfully"
-                
-            elif state == "off" and request.user.is_superuser or party.user == request.user and request.user.has_perm('accounts.can_manage_purchase') or (request.user.staffuser if hasattr(request.user, 'staffuser') else False) and (party.user.assigned_staff.user if hasattr(party.user.assigned_staff, 'user') else None)==request.user:
+                except:
+                    resp['msg'] = "Couldn't Create new Sale"
+                    return JsonResponse(resp)
+
+            if state == "off" and (request.user.is_superuser or user == request.user  or  (user.assigned_staff.user if hasattr(user.assigned_staff, 'user') else None)==request.user and request.user.has_perm('accounts.can_add_purchase')):
+                state_off = True
                 try:
                     with transaction .atomic():
                         trade = Transaction.objects.create(bill_number=bill,party=party,description=description,debit=(total if validate_total() else calc_total),form=form_obj,discount=discount,is_sales=False,charges=charges)
@@ -612,7 +757,7 @@ def save_trade(request):
                                 try:
                                     products.filter(name=item['productName']).update(quantity=F('quantity')+item['quantity'])
                                 except:
-                                    resp['msg'] = f"Not enough {item['productName']} for this Sale"
+                                    resp['msg'] = f"Couldn't update inventory of {item['productName']}"
                                     return JsonResponse(resp)
                         TradeItem.objects.bulk_create(trade_items)
 
@@ -620,106 +765,120 @@ def save_trade(request):
                 except Exception:
                     resp['msg'] = "Couldn't Create new Purchase"
                     return JsonResponse(resp)
-
-            else:
-                resp['msg'] = "You don't have permission to manage transactions"
+            if state == "on" and not state_on:
+                resp['msg'] = "You dont have authorization to add new sale"
                 return JsonResponse(resp)
+            if state == "off" and not state_off:
+                resp['msg'] = "You dont have authorization to add new purchase"
+                return JsonResponse(resp)
+        
         balance = party.get_balance()
         party.balance = balance
         party.save()
 
         resp['status'] = "success"
         return JsonResponse(resp)
-    
+    else:
+        JsonResponse(status=405)
 
 @login_required
 def sales_list(request):
+    resp = {'status': 'failed', 'msg': ''}
     if request.method == 'GET':
         selected_date = request.GET.get('date')
         user_id = request.GET.get('user_id')
-        user = User.objects.get(pk=user_id)
+        try:
+            user = User.objects.get(pk=user_id)
+        except:
+            resp['msg'] = "User couldn't be found"
+            JsonResponse(resp)
         if user:
-            if request.user.is_superuser or user == request.user and request.user.has_perm('accounts.can_manage_sales') or (request.user.staffuser if hasattr(request.user, 'staffuser') else False) and (user.assigned_staff.user if hasattr(user.assigned_staff, 'user') else None)==request.user:
+            if request.user.is_superuser or user == request.user  or  (user.assigned_staff.user if hasattr(user.assigned_staff, 'user') else None==request.user and request.user.has_perm('accounts.can_view_sale')):
                 if selected_date == '2000-01-01':
                     sales = Transaction.objects.select_related('party__user').filter(delete_flag=0,party__delete_flag=0,party__user = user,is_sales=True)
                 else:
                     sales = Transaction.objects.select_related('party__user').filter(delete_flag=0,party__delete_flag=0,form__created_at=selected_date,party__user = user,is_sales=True)
-                transaction_data = [{'party': transaction.party.name,
+                resp['transaction_data'] = [{'party': transaction.party.name,
                                     'description': transaction.description,
                                     'debit': transaction.credit,
                                     'discount': transaction.discount,
                                     'date': transaction.form.created_at,
                                     'id':transaction.pk,
                                     'bill_number':transaction.bill_number} for transaction in sales]
-                return JsonResponse({
-                    'transactions': transaction_data,
-                    })
+                resp['status'] = 'success'
+                return JsonResponse(resp)
         
             else:
-                return JsonResponse({
-                    "msg" : "You are not authorized to view transaction"
-            })
+                resp['msg'] = "You are not authorized to view sales"
+                return JsonResponse(resp)
         else:
             JsonResponse(status=204)
-
+    else:
+        JsonResponse(status=405)
 @login_required
 def purchases_list(request):
+    resp = {'status': 'failed', 'msg': ''}
     if request.method == 'GET':
         selected_date = request.GET.get('date')
         user_id = request.GET.get('user_id')
-        user = User.objects.get(pk=user_id)
+        try:
+            user = User.objects.get(pk=user_id)
+        except:
+            resp['msg'] = "User couldn't be found"
+            JsonResponse(resp)
         if user:
-            if request.user.is_superuser or user == request.user and request.user.has_perm('accounts.manage_purchase') or (request.user.staffuser if hasattr(request.user, 'staffuser') else False) and (user.assigned_staff.user if hasattr(user.assigned_staff, 'user') else None)==request.user:
+            if request.user.is_superuser or user == request.user  or  (user.assigned_staff.user if hasattr(user.assigned_staff, 'user') else None==request.user and request.user.has_perm('accounts.can_view_purchase')):
                 if selected_date == '2000-01-01':
                     purchase = Transaction.objects.select_related('party__user').filter(delete_flag=0,party__delete_flag=0,party__user = user,is_sales=False)
                 else:
                     purchase = Transaction.objects.select_related('party__user').filter(delete_flag=0,party__delete_flag=0,form__created_at=selected_date,party__user = user,is_sales=False)
-                transaction_data = [{'party': transaction.party.name,
+                resp['transaction_data'] = [{'party': transaction.party.name,
                                     'description': transaction.description,
                                     'debit': transaction.debit,
                                     'discount': transaction.discount,
                                     'date': transaction.form.created_at,
                                     'id':transaction.pk,
                                     'bill_number':transaction.bill_number} for transaction in purchase]
-                return JsonResponse({
-                    'transactions': transaction_data,
-                    })
+                resp['status'] = "success"
+                return JsonResponse(resp)
         
             else:
-                return JsonResponse({
-                    "msg" : "You are not authorized to view transaction"
-            })
+                resp["msg"] = "You are not authorized to view Purchases"
+                return JsonResponse(resp)
         else:
             JsonResponse(status=204)
-
+    else:
+        JsonResponse(status=405)
 @login_required
 def products(request,pk=None):
     context = context_data(request)
+    context['page_name'] = "Products"
+    context['page_title'] = "Products"
     options = []
     if pk:
         try:
             user = User.objects.get(pk=pk)
-            if (user.assigned_staff.user if hasattr(user.assigned_staff, 'user') else None)==request.user or request.user.is_superuser:
-                context['products'] = Product.objects.select_related('user').filter(user = user,delete_flag=0)
-                context['page_name'] = user
-                context['user'] = user
-                options.append(('parties','Parties'))
-                options.append(('manage_transactions','Manage Transactions')) 
-                options.append(('manage_s_p','Manage Sale/purchases')) 
-
-            else:
-                return redirect("/products/")
         except User.DoesNotExist:
             return HttpResponse(status=204)
+        if (user.assigned_staff.user if hasattr(user.assigned_staff, 'user') else None==request.user and request.user.has_perm('accounts.view_product')) or request.user.is_superuser or user == request.user:
+            context['products'] = Product.objects.select_related('user').filter(user = user,delete_flag=0)
+            context['page_name'] = user
+            context['user'] = user
+            options.append(('parties','Parties')) if (request.user.has_perm('accounts.add_party') or request.user == user) else None
+            options.append(('manage_transactions','Manage Transactions')) if (request.user.has_perm('accounts.can_manage_transactions') or request.user == user) else None
+            options.append(('manage_s_p','Manage Sale/purchases')) if (request.user.has_perm('accounts.can_manage_s_p') or request.user == user) else None 
+
+        else:
+            return redirect("/products/")
     else:
         if (request.user.staffuser if hasattr(request.user, 'staffuser') else False) or request.user.is_superuser:
                 return HttpResponse(status=204)
         context['products'] = Product.objects.filter(user = request.user,delete_flag=0)
         context['page_name'] = request.user
         context['user'] = request.user
-        options.append(('parties','Parties'))
-        options.append(('manage_transactions','Manage Transactions')) if request.user.has_perm('accounts.can_manage_transactions') else None
-        options.append(('manage_s_p','Manage Sale/purchases')) if request.user.has_perm('accounts.can_manage_s/p') else None
+        options.append(('parties','Parties')) if (request.user.has_perm('accounts.add_party') or request.user == user) else None
+        options.append(('manage_transactions','Manage Transactions')) if request.user.has_perm('accounts.can_manage_transactions' or request.user == user) else None
+        options.append(('manage_s_p','Manage Sale/purchases')) if request.user.has_perm('accounts.can_manage_s_p' or request.user == user) else None
     context['options'] = options
     return render(request,"accounts/products.html",context)
 
@@ -730,18 +889,20 @@ def manage_products(request,pk=None):
     context['page_title'] = 'Manage Products'
 
     if pk :
-        product = Product.objects.select_related('user').get(pk=pk)
-        if product:
-            if request.user.is_superuser or (request.user.staffuser if hasattr(request.user, 'staffuser') else False) and (product.user.assigned_staff.user if hasattr(product.user.assigned_staff, 'user') else None)==request.user or request.user == product.user and request.user.has_perm('accounts.change_product'):
-                    context['product'] = product
+
+        product = Product.objects.select_related('user').filter(pk=pk)
+        if product[0]:
+            if request.user.is_superuser or  (product[0].user.assigned_staff.user if hasattr(product[0].user.assigned_staff, 'user') else None==request.user  and request.user.has_perm('accounts.change_product')) or request.user == product[0].user:
+                    context['product'] = product[0]
             else:
-                HttpResponse("You are not Authorized to Edit This Product")
+                return HttpResponse("You are not Authorized to Edit This Product")
         else:
             return HttpResponse("The product is invalid")        
           
     else:
-        if request.user.is_superuser or (request.user.staffuser if hasattr(request.user, 'staffuser') else False) and (request.user.assigned_staff.user if hasattr(request.user.assigned_staff, 'user') else None)==request.user or  request.user.has_perm('accounts.add_product'):
-            context['user_id'] = request.GET.get('user_id')
+        user = User.objects.get(pk = request.GET.get('user_id'))
+        if request.user.is_superuser or  (request.user.assigned_staff.user if hasattr(request.user.assigned_staff, 'user') else None==request.user or  request.user.has_perm('accounts.add_product')) or request.user == user:
+            context['user_id'] = user.pk
         else:
             HttpResponse("You are not Authorized to Add This Product")
     return render(request, 'accounts/manage_products.html', context)
@@ -756,37 +917,43 @@ def save_product(request):
         user_id = data.get('user_id','')
         name = data.get('name','')
         quantity = data.get('quantity','')
-        print(name,user_id)
         if quantity == '':
             quantity = 0
+        try:
+            user = User.objects.get(id=user_id)
+        except:
+            resp['msg'] = "User Couldn't be found"
+            return JsonResponse(resp)
         if id == '':
-            try:
-                user = User.objects.get(id=user_id)
-            except:
-                resp['msg'] = "User Couldn't be found"
-                return JsonResponse(resp)
-                
-            try:
-                Product.objects.create(user=user,name=name,quantity=quantity)
-                resp['msg'] = "product was created successfully"
-            except:
-                resp['msg'] = "Product Alredy Exists, Check your Recycle Bin"
+            if request.user.is_superuser or request.user == user or (user.assigned_staff.user if hasattr(user.assigned_staff,'user') else False==request.user and request.user.has_perm('accounts.add_product')):
+                try:
+                    Product.objects.create(user=user,name=name,quantity=quantity)
+                    resp['msg'] = "product was created successfully"
+                except:
+                    resp['msg'] = "Product Alredy Exists, Check your Recycle Bin"
+                    return JsonResponse(resp)
+            else:
+                resp['msg'] = "You are not allowed to Add New Product"
                 return JsonResponse(resp)
         else:
-            try:
-                product = Product.objects.get(id=id)
-            except:
-                resp['msg'] = "Couldn't find product"
+            if request.user.is_superuser or request.user == user or (user.assigned_staff.user if hasattr(user.assigned_staff,'user') else False==request.user and request.user.has_perm('accounts.change_product')):
+                try:
+                    product = Product.objects.get(id=id)
+                except:
+                    resp['msg'] = "Couldn't find product"
+                    return JsonResponse(resp)
+                try:
+                    with transaction.atomic():
+                        product.name = name
+                        product.save()
+                        resp['msg'] = "product was updated successfully"
+                except:
+                    resp['msg'] = "Couldn't Update Product"
+                    return JsonResponse(resp)
+            else:
+                resp['msg'] = "You are not allowed to Update Product"
                 return JsonResponse(resp)
-            try:
-                with transaction.atomic():
-                    product.name = name
-                    product.quantity = quantity
-                    product.save()
-                    resp['msg'] = "product was updated successfully"
-            except:
-                resp['msg'] = "Couldn't Update Product"
-                return JsonResponse(resp)
+            
     resp['status'] = 'success'
     return JsonResponse(resp)
 
@@ -796,15 +963,18 @@ def print_veiw(request,pk):
     if request.method == 'GET':
         if pk:
             try:
-                transactions = Transaction.objects.select_related('party').get(pk=pk)
-                context['transaction'] = transactions
-                context['items'] = TradeItem.objects.filter(trade=transactions)
+                transactions = Transaction.objects.select_related('party__user').get(pk=pk)
             except:
                 return HttpResponse(status=204)
-            
+            if request.user.is_superuser or transactions.party.user == request.user or (transactions.party.user.assigned_staff.user if hasattr(transactions.party.user.assigned_staff,'user') else False == request.user and request.user.has_perm('accounts.can_print_details')):
+                context['transaction'] = transactions
+                context['items'] = TradeItem.objects.filter(trade=transactions)
+            else:
+                return HttpResponse(status=204)
             return render(request,'accounts/print_item.html',context)
         
-
+    else:
+        return HttpResponse(status=405)
 @login_required
 def delete_product(request, pk=None):
     resp = {
@@ -814,23 +984,25 @@ def delete_product(request, pk=None):
 
     if pk:
         product = Product.objects.select_related('user').filter(pk = pk)
-        if product:
-            if request.user.is_superuser or product.user == request.user and request.user.has_perm('accounts.add_product') or (request.user.staffuser if hasattr(request.user, 'staffuser') else False) and (product.user.assigned_staff.user if hasattr(product.user.assigned_staff, 'user') else None)==request.user:            
+        if product[0]:
+            if request.user.is_superuser or product[0].user == request.user or (request.user.has_perm('accounts.delete_product') and (product[0].user.assigned_staff.user if hasattr(product[0].user.assigned_staff, 'user') else None)==request.user):            
                 if product[0].delete_flag == 0:
                     try:
                         product.update(delete_flag=1)
                         messages.success(request, "product has been moved to recycle bin successfully.")
                         resp['status'] = 'success'
                     except:
-                        resp['msg'] = "Deleting User Failed."
+                        resp['msg'] = "Deleting Product Failed."
                 else:
                     product.delete()
                     messages.success(request,"product has been deleted successfully.")
                     resp['status'] = 'success'
             else:
-                return HttpResponse(status=204)
+                resp['msg' ] = "You are not authorized to delete Product"
+                return JsonResponse(resp)
         else:
-            return HttpResponse(status=204)
+            messages.error(request,"product couldn't be found")
+            return JsonResponse(resp)
     
     else:
         resp['msg'] = "There's no data sent in the request"

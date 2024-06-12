@@ -12,10 +12,12 @@
             <label for="name" class="control-label">Name</label>
             <input type="text" id="name" name="name" class="form-control form-control-sm rounded-0" value="{{product.name}}" required>
         </div>
+    {% if not product.id %}
         <div class="form-group mb-3">
             <label for="quantity" class="control-label">Quantity</label>
             <input type="number" class="form-control rounded-0" name="quantity" id="quantity" value="{{ product.quantity }}" >
         </div>
+    {% endif %}
     </form>
 </div>
 </body>

@@ -3,6 +3,8 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db.models import Count,Q
 from django.core.exceptions import ValidationError
+from django.db.models.signals import post_save,post_delete
+from django.dispatch import receiver
 
 class Party(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
@@ -44,7 +46,7 @@ class Form(models.Model):
 class Product(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.CASCADE)
     name = models.CharField(max_length=255)
-    quantity = models.PositiveIntegerField(default=0)
+    quantity = models.BigIntegerField(default=0)
     delete_flag = models.IntegerField(default=0)
     def __str__(self) -> str:
         return self.name
@@ -77,7 +79,16 @@ class Transaction(models.Model):
             ("can_manage_sales","Can Manage Sales"),
             ("can_manage_purchase","Can Manage Purchase"),
             ("can_manage_s_p","Can Manage Sale/Purchase"),
-
+            ("can_change_sale","Can Change Sale"),
+            ("can_change_purchase","Can Change Purchase"),
+            ("can_add_purchase","Can Add Purchase"),
+            ("can_add_sale","Can Add Sale"),
+            ("can_view_sale","Can View Sale"),
+            ("can_delete_sale","Can Delete Sale"),
+            ("can_view_purchase","Can View Purchase"),
+            ("can_delete_purchase","Can Delete Purchase"),
+            ("can_print_details","Can Print Sale/Purchase"),
+            
         )
 
     def get_running_balance(self):
