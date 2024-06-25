@@ -457,7 +457,7 @@ def view_transactions(request,pk=None):
         party = models.Party.objects.filter(id=pk)
         if party[0].user == request.user  or request.user.is_superuser or (party[0].user.assigned_staff.user if hasattr(party[0].user.assigned_staff, 'user') else None==request.user and request.user.has_perm('accounts.view_transaction')):
             transactions = models.Transaction.objects.select_related('party').filter(delete_flag=0,party = party[0]).order_by('form__created_at', 'time')
-            return render(request, 'accounts/transactions.html', {'transactions': transactions,"party":party})
+            return render(request, 'accounts/transactions.html', {'transactions': transactions,"party":party[0]})
         else:
             return HttpResponse(status=204)
         
