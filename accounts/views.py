@@ -154,7 +154,7 @@ def delete_party(request, pk=None):
     if pk:
         party = Party.objects.select_related('user').filter(pk = pk)
         if party:
-            if request.user.is_superuser or party.user == request.user  or (party.user.assigned_staff.user if hasattr(party.user.assigned_staff, 'user') else None==request.user and request.user.has_perm('accounts.delete_party')):
+            if request.user.is_superuser or party[0].user == request.user  or (party.user.assigned_staff.user if hasattr(party.user.assigned_staff, 'user') else None==request.user and request.user.has_perm('accounts.delete_party')):
                 if party[0].delete_flag == 0:
                     try:
                         party.update(delete_flag=1)
