@@ -312,7 +312,7 @@ def transaction_list(request):
         if user:
             if request.user.is_superuser or user == request.user or (user.assigned_staff.user if hasattr(user.assigned_staff, 'user') else None==request.user and request.user.has_perm('accounts.view_transaction') ):
                 if selected_date == '2000-01-01':
-                    transactions = Transaction.objects.select_related('party__user').filter(delete_flag=0,party__delete_flag=0,party__user = user,is_sales=None)
+                    transactions = Transaction.objects.select_related('party__user').filter(delete_flag=0,party__delete_flag=0,party__user = user,is_sales=None)[:100]
                 else:
                     transactions = Transaction.objects.select_related('party__user').filter(delete_flag=0,party__delete_flag=0,form__created_at=selected_date,party__user = user,is_sales=None)
                 resp['transaction_data'] =[{'party': transaction.party.name,
@@ -332,6 +332,7 @@ def transaction_list(request):
             JsonResponse(status=204)
     else:
         return HttpResponse (status=405)
+    
 @login_required
 def delete_transaction(request,pk=None):
     resp = {
