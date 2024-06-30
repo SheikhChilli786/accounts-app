@@ -87,30 +87,42 @@
                                 title:'',
                                 autoPrint: true,
                                 customize: function ( win ) {
-                                    var fromDate = $('#date_from').val();
-                                    var toDate = $('#date_to').val();
-                                    var recentBalanceValue = recentBalance.text();
-                                    $(win.document.body).find('h4').addClass('your-custom-class');
-                                    $(win.document.body).find('th:eq(0)').css('width', '120px');
-                                    $(win.document.body).find('th:eq(1)').css('width', '90px');
-                                    $(win.document.body).find('th:eq(2)').css('width', '90px');
-                                    $(win.document.body).find('th:eq(4)').css('width', '110px');
-                                    $(win.document.body).prepend('<h4 style="text-align: left;" id="recentbalance">سابقہ بیلنس: <span>' + recentBalanceValue + '</span></h4>');
-                                    if (toDate && fromDate) {
-                                        $(win.document.body).prepend('<h4 style="text-align: right;"> {{party.name}}:پارٹی</h4><h4 style="text-align: right">' + toDate + 'لین دین مورخہ' + fromDate + '  سے </h4>');
-                                    } else if (toDate) {
-                                        $(win.document.body).prepend('<h4 style="text-align: right;"> {{party.name}}:پارٹی</h4><h4 style="text-align: right">' + toDate + '  پہلے لین دین سے</h4>');
-                                    } else if (fromDate) {
-                                        $(win.document.body).prepend('<h4 style="text-align: right;"> {{party.name}}:پارٹی</h4><h4 style="text-align: right"> لین دین مورخہ ' + fromDate + ' آخری لین دین تک  سے  </h4>');
-                                    } else {
-                                        $(win.document.body).prepend('<h4 style="text-align: right;"> {{party.name}}:پارٹی</h4><h4 style="text-align: right"> تمام لین دین</h4>');
-                                    }
-                                    $(win.document.body).prepend('<h1 style="text-align:center;">تفصیل کھاتہ</h1>');
-                                    var lastTr = $(win.document.body).find('tbody tr:last');
-                                    var firstTdValue = lastTr.find('td:eq(0)').text();
-                            // Append a custom td just before the end of tbody and after the last tr
-                                    lastTr.after('<tr><td style="text-align:right; border: 1px solid #000;">'+firstTdValue+'</td></tr>');
+                            var fromDate = $('#date_from').val();
+                                var toDate = $('#date_to').val().split('-').reverse().join("-");
+                                var recentBalanceValue = recentBalance.text();
+                                
+                                // Customize the document body
+                                var body = $(win.document.body);
+                                body.find('h4').addClass('your-custom-class');
+                                body.find('th:eq(0)').css('width', '120px');
+                                body.find('th:eq(1)').css('width', '90px');
+                                body.find('th:eq(2)').css('width', '90px');
+                                body.find('th:eq(4)').css('width', '110px');
+                                body.prepend('<h4 style="text-align: left;" id="recentbalance">سابقہ بیلنس: <span>' + recentBalanceValue + '</span></h4>');
 
+                                // Add the party name header
+                                var partyNameHeader = '<h4 style="text-align: right;">{{party.name}}:پارٹی</h4>';
+
+                                // Determine the date range header
+                                var dateRangeHeader = '';
+                                if (toDate && fromDate) {
+                                    dateRangeHeader = '<h4 style="text-align: right;">' + toDate + ' لین دین مورخہ ' + fromDate + ' سے' + '</h4>';
+                                } else if (toDate) {
+                                    dateRangeHeader = '<h4 style="text-align: right;"> ' + toDate + '  پہلے لین دین سے' + '</h4> ';
+                                } else if (fromDate) {
+                                    dateRangeHeader = '<h4 style="text-align: right"> لین دین مورخہ ' + fromDate + ' سےآخری لین دین تک </h4>';
+                                } else {
+                                    dateRangeHeader = '<h4 style="text-align: right"> تمام لین دین</h4>';
+                                }
+
+                                // Prepend the headers to the body
+                                body.prepend(partyNameHeader + dateRangeHeader);
+                                body.prepend('<h1 style="text-align:center;">تفصیل کھاتہ</h1>');
+
+                                // Add a custom row after the last table row
+                                var lastTr = body.find('tbody tr:last');
+                                var firstTdValue = lastTr.find('td:eq(0)').text();
+                                lastTr.after('<tr><td style="text-align:right; border: 1px solid #000;">' + firstTdValue + '</td></tr>');
                                 }
                                 
                             },
@@ -118,8 +130,9 @@
                                 extend: 'pdfHtml5',
                                 title:"{{party.name}}",
                                 customize: function (doc) {
-                                    var fromDate = $('#date_from').val();
-                                    var toDate = $('#date_to').val();
+                                    var fromDate = $('#date_from').val().split('-').reverse().join("/");
+                                    
+                                    var toDate = $('#date_to').val().split('-').reverse().join("/");
                                     var recentBalanceValue = recentBalance.text();
                                     
                                     processDoc(doc);
@@ -147,14 +160,14 @@
                                             margin: [ 0, 0, 0, 12 ],
                                             alignment: 'right',
                                             fontSize:14,
-                                            text: toDate +   ' سے '  + ' دین '+' لین ' + ' پہلے'
+                                            text: ' تک  '  + toDate + ' مورخہ' +  ' دین '+' لین ' + ' تمام' 
                                         } );
                                     }else if (fromDate) {
                                         doc.content.splice( 1, 0, {
                                             margin: [ 0, 0, 0, 12 ],
                                             alignment: 'right',
                                             fontSize:14,
-                                            text:    ' تک  '  + ' دین '+' لین ' + ' آخری' + fromDate + ' مورخہ' + ' دین' + ' لین'
+                                            text:    ' تک  '  + ' دین '+' لین ' + ' آخری' + ' سے ' +  fromDate  + ' مورخہ' + ' دین' + ' لین'
                                         } );
                                     }else {
                                         doc.content.splice( 1, 0, {
