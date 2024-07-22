@@ -80,7 +80,6 @@
         $('.delete-data').click(function() {
             _conf("Are you sure to delete this User?", 'delete_user', ["'" + $(this).attr('data-url') + "'"])
         })
-        $('#user-tbl').find('td, th').addClass('px-2 py-1 align-middle')
         
         $('#user-tbl').DataTable({
             responsive: {
@@ -94,6 +93,8 @@
                 { responsivePriority: 1, targets: -1 },
                 { responsivePriority: 2, targets: 1 },
                 { responsivePriority: 3, targets: 0 },
+                {"className": "dt-center", "targets": [4]},
+                {"className": "dt-left", "targets": [2]}
             ],
             lengthMenu: [
                 [25, 50, 100, -1],
