@@ -256,6 +256,12 @@
     <button type="button" class="btn btn-secondary" id="toggleTransactions">
         View Recent Transactions
     </button>
+        <select id="transactionLimit" class="btn btn-secondary">
+        <option value="100">100</option>
+        <option value="500">500</option>
+        <option value="-1">All</option>
+    </select>
+
     <div id="transactionListContainer">
         <div id="transactionList">
             
@@ -269,7 +275,10 @@ $(document).ready(function () {
     var final_amount = 0;
        // Cache the radio buttons selector
     var $radioButtons = $("input[type='radio'][name='btnradio']");
-    
+    $('#transactionLimit').on('change',function(){
+        initializeDataTable()
+    })
+
     // Define the function to handle button state
     function button_sales_purchase() {
         var radioValue = $("input[id='btnsales']:checked").val();
@@ -802,6 +811,7 @@ $(document).ready(function () {
         
         function initializeDataTable() {
              var selectedDate = localStorage.getItem('date')
+             var selectedLimit = $('#transactionLimit').find(':selected').val()
             var radioValue = $("input[id='btnsales']:checked").val();
             var trade = radioValue == 'on' ? 'sales' : 'purchases'
             if(selectedDate==''||selectedDate == null){
@@ -819,7 +829,9 @@ $(document).ready(function () {
                 url: url,
                 type: 'GET',
                 data: {'date': selectedDate,
-                        'user_id':{{user_id}}},
+                        'user_id':{{user_id}},
+                        'limit':selectedLimit,
+                        },
                 dataType: 'json',
                 success: function (data) {
                     // Clear existing transaction list

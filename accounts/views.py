@@ -793,6 +793,7 @@ def sales_list(request):
     if request.method == 'GET':
         selected_date = request.GET.get('date')
         user_id = request.GET.get('user_id')
+        limit = int(request.GET.get('limit'))
         try:
             user = User.objects.get(pk=user_id)
         except:
@@ -801,7 +802,10 @@ def sales_list(request):
         if user:
             if request.user.is_superuser or user == request.user  or  (user.assigned_staff.user if hasattr(user.assigned_staff, 'user') else None==request.user and request.user.has_perm('accounts.can_view_sale')):
                 if selected_date == '2000-01-01':
-                    sales = Transaction.objects.select_related('party__user').filter(delete_flag=0,party__delete_flag=0,party__user = user,is_sales=True)
+                    if limit == -1:
+                        sales = Transaction.objects.select_related('party__user').filter(delete_flag=0,party__delete_flag=0,party__user = user,is_sales=True)
+                    else:
+                        sales = Transaction.objects.select_related('party__user').filter(delete_flag=0,party__delete_flag=0,party__user = user,is_sales=True)[:limit]
                 else:
                     sales = Transaction.objects.select_related('party__user').filter(delete_flag=0,party__delete_flag=0,form__created_at=selected_date,party__user = user,is_sales=True)
                 resp['transaction_data'] = [{'party': transaction.party.name,
@@ -827,6 +831,7 @@ def purchases_list(request):
     if request.method == 'GET':
         selected_date = request.GET.get('date')
         user_id = request.GET.get('user_id')
+        limit = int(request.GET.get('limit'))
         try:
             user = User.objects.get(pk=user_id)
         except:
@@ -835,7 +840,11 @@ def purchases_list(request):
         if user:
             if request.user.is_superuser or user == request.user  or  (user.assigned_staff.user if hasattr(user.assigned_staff, 'user') else None==request.user and request.user.has_perm('accounts.can_view_purchase')):
                 if selected_date == '2000-01-01':
-                    purchase = Transaction.objects.select_related('party__user').filter(delete_flag=0,party__delete_flag=0,party__user = user,is_sales=False)
+                    if limit == -1:
+                        purchase = Transaction.objects.select_related('party__user').filter(delete_flag=0,party__delete_flag=0,party__user = user,is_sales=False)
+                    else:
+                        purchase = Transaction.objects.select_related('party__user').filter(delete_flag=0,party__delete_flag=0,party__user = user,is_sales=False)[:limit]
+
                 else:
                     purchase = Transaction.objects.select_related('party__user').filter(delete_flag=0,party__delete_flag=0,form__created_at=selected_date,party__user = user,is_sales=False)
                 resp['transaction_data'] = [{'party': transaction.party.name,
