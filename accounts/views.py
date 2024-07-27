@@ -305,6 +305,8 @@ def transaction_list(request):
         }
         selected_date = request.GET.get('date')
         user_id = request.GET.get('user_id')
+        limit = int(request.GET.get('limit'))
+        
         try:
             user = User.objects.get(pk=user_id)
         except:
@@ -312,7 +314,10 @@ def transaction_list(request):
         if user:
             if request.user.is_superuser or user == request.user or (user.assigned_staff.user if hasattr(user.assigned_staff, 'user') else None==request.user and request.user.has_perm('accounts.view_transaction') ):
                 if selected_date == '2000-01-01':
-                    transactions = Transaction.objects.select_related('party__user').filter(delete_flag=0,party__delete_flag=0,party__user = user,is_sales=None)[:100]
+                    if limit == -1:
+                        transactions = Transaction.objects.select_related('party__user').filter(delete_flag=0,party__delete_flag=0,party__user = user,is_sales=None)
+                    else:
+                        transactions = Transaction.objects.select_related('party__user').filter(delete_flag=0,party__delete_flag=0,party__user = user,is_sales=None)[:limit]
                 else:
                     transactions = Transaction.objects.select_related('party__user').filter(delete_flag=0,party__delete_flag=0,form__created_at=selected_date,party__user = user,is_sales=None)
                 resp['transaction_data'] =[{'party': transaction.party.name,

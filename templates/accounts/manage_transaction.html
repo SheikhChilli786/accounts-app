@@ -122,6 +122,11 @@
     <button type="button" class="btn btn-secondary" id="toggleTransactions">
         View Recent Transactions
     </button>
+    <select id="transactionLimit" class="btn btn-secondary">
+        <option value="100">100</option>
+        <option value="500">500</option>
+        <option value="-1">All</option>
+    </select>
     <div id="transactionListContainer" >
         <div id="transactionList">
             
@@ -137,6 +142,9 @@
     $("input[type='number']").on("focus", function() { 
             $(this).select(); 
         });
+    $('#transactionLimit').on('change',function(){
+        initializeDataTable()
+    })
     $('#toggleTransactions').click(function () {
         var container = $('#transactionListContainer');
         var button = $(this);
@@ -180,7 +188,6 @@
         // Add transaction to the list
         $('#transactionForm').submit(function (e) {
             var id = $('#id').val();
-            console.log(id)
             var name = $('#name').val();
             var description = $('#description').val();
             var debit = $('#debit').val();
@@ -304,6 +311,7 @@
         
         function initializeDataTable() {
              var selectedDate = localStorage.getItem('date')
+             var selectedLimit = $('#transactionLimit').find(':selected').val()
             if(selectedDate=='' || selectedDate == null){
             selectedDate = '2000-01-01'
             }
@@ -318,7 +326,9 @@
                 url: '{% url "accounts:transaction_list" %}',
                 type: 'GET',
                 data: {'date': selectedDate,
-                        'user_id':{{user_id}}},
+                        'user_id':{{user_id}},
+                        'limit':selectedLimit,
+                        },
                 dataType: 'json',
                 success: function (data) {
                     // Clear existing transaction list
