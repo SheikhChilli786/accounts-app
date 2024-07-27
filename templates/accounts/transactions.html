@@ -1,4 +1,4 @@
-{% load static %}{% block pageContent %}{% load customfilter %}
+{% extends 'base.html' %}{% load static %}{% block pageContent %}{% load customfilter %}
 <!DOCTYPE html>
 
 <html lang="en">
@@ -7,26 +7,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <title>{{party.name }}|transactions</title>
-    <link rel="stylesheet" href="https://cdn.datatables.net/2.0.0/css/dataTables.dataTables.css">
-    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/3.0.0/css/buttons.dataTables.css">
-    <link rel="stylesheet" href="https://cdn.datatables.net/rowgroup/1.5.0/css/rowGroup.dataTables.css">
-    <link rel="stylesheet" href="https://cdn.datatables.net/responsive/3.0.0/css/responsive.dataTables.css">
-
-    <script src="https://code.jquery.com/jquery-3.7.1.js"></script>
-    <script src="https://cdn.datatables.net/2.0.3/js/dataTables.js"></script>
-    <script src="https://cdn.datatables.net/buttons/3.0.1/js/dataTables.buttons.js"></script>
-    <script src="https://cdn.datatables.net/buttons/3.0.1/js/buttons.dataTables.js"></script>
-    <script src="https://cdn.datatables.net/buttons/3.0.0/js/buttons.print.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
-    <script src="https://cdn.datatables.net/buttons/3.0.1/js/buttons.html5.min.js"></script>
-    <script src="https://cdn.datatables.net/responsive/3.0.0/js/dataTables.responsive.js"></script>
-    <script src="https://cdn.datatables.net/responsive/3.0.0/js/responsive.dataTables.js"></script>
-    <script src="https://cdn.datatables.net/rowgroup/1.5.0/js/dataTables.rowGroup.js"></script>
-    <script src="https://cdn.datatables.net/rowgroup/1.5.0/js/rowGroup.dataTables.js"></script>
-    <script type="text/javascript" src="{% static 'assets/default/js/vfs_fonts.js' %}"></script>
-
     <style>
-       div.container { max-width: 1200px }
+       div.container { max-width: 100% }
        body.dt-print-view table th{
             text-align: right;
         }
@@ -38,6 +20,8 @@
 </head>
 
 <body>
+<section class="py-4">
+    <div class="container">
     <a href="javascript:history.back()" style="position: absolute; top: 20px; left: 20px; text-decoration: none;">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M20 11H7.414l4.293-4.293L10 5l-6 6 6 6 1.707-1.707L7.414 13H20v-2z" fill="currentColor"/>
@@ -45,40 +29,50 @@
         Back
     </a>
     <h1 style="text-align:center;">تفصیل کھاتہ</h1>
-  <h4 style="text-align: right;"> {{party.name}}:پارٹی</h4>
-  <h4 style="text-align: right"><input name="date_to" id="date_to" type="date"></input>مورخہ <input name="date_from" id="date_from" type="date"></input> سے </h4>
-  <h4 style="text-align: left;" id="recentbalance">سابقہ بیلنس: <span>0</span></h4>
-
-  <div id="breakpoint"></div>
-<table id="example" class="display cell-border" style="width:100%">
-        <thead>
-            <tr>
-                <th class='all' >بقایا</th>
-                <th class='tablet desktop'>بنام</th>
-                <th class='tablet desktop'>جمع</th>
-                <th class='all'>تفصیل</th>
-                <th class='tablet desktop'>تاریخ</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for transaction in transactions %}
-            <tr>
-                <td>{{transaction.get_running_balance | credit_or_debit}}</td>
-                <td>{{transaction.credit | check_value}}</td>
-                <td>{{transaction.debit | check_value}}</td>
-                <td>{{transaction.description | check_value}}</td>
-                <td>{{transaction.form.created_at}}</td>
-                
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-
+        <center>
+            <hr class="bg-primary opacity-100" style="height:3px" width="5%">
+        </center>
+        <div class="card rounded-0 shadow">
+        <div class="card-body">
+        <div  class="container-fluid">
+            <p style="text-align: right;"> {{party.name}}:پارٹی</p>
+            <p style="text-align: right; margin-top:10px;"><input  name="date_to" id="date_to" type="date"></input>مورخہ <input name="date_from" id="date_from" type="date"></input> سے </p>
+            <p style="text-align: left;" id="recentbalance">سابقہ بیلنس: <span>0</span></p>
+            
+            <div id="breakpoint"></div>
+            <table id="trans-tbl" class="display cell-border" style="width:100%">
+                    <thead>
+                        <tr>
+                            <th class="all">بقایا</th>
+                            <th class="tablet desktop">بنام</th>
+                            <th  class="tablet desktop">جمع</th>
+                            <th>تفصیل</th>
+                            <th class="all">تاریخ</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for transaction in transactions %}
+                        <tr>
+                            <td>{{transaction.get_running_balance | credit_or_debit}}</td>
+                            <td>{{transaction.credit | check_value}}</td>
+                            <td>{{transaction.debit | check_value}}</td>
+                            <td style="overflow:ellipses;">{{transaction.description | check_value}}</td>
+                            <td>{{transaction.form.created_at}}</td>
+                            
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+            </table>
+        </div>
+        </div>
+        </div>
+    </div>
+</section>
     {% endblock pageContent %} {% block ScriptBlock %}
     <script>
         $(document).ready(function () {
             var recentBalance = $('#recentbalance span')
-            var dataTable = $('#example').DataTable({
+            var dataTable = $('#trans-tbl').DataTable({
                 layout: {
                     topStart: {
                         buttons: [
@@ -213,14 +207,18 @@
                 }}, 
                 paging:true,
                 order: [[4, 'asc']],
-                
-                rowGroup: {
-                    dataSrc: 4
-                },
+                responsive: {
+                    details: {
+                        type: 'column',
+                        target: 'tr'
+                        }   
+                },  
+
                 columnDefs: [
                     { "width": "120px", "targets": 0 }, 
                     { "width": "90px", "targets": 1 }, 
                     { "width": "90px", "targets": 2 }, 
+                    { "width": "90px", "targets": 3 }, 
                     { "width": "110px", "targets": 4,
                      "render": function (data, type, row) {
                       if (type === 'display') {
@@ -230,8 +228,12 @@
                       }
                       return data;
                   }
-                },  
-                    
+
+                },
+                { responsivePriority: 1, targets: 0 },
+                { responsivePriority: 2, targets: -1 },
+                { responsivePriority: 3, targets: 1 },
+                { responsivePriority: 4, targets: 2 },
                    {
                                 orderable: false,
                                 targets: '_all'
@@ -248,9 +250,6 @@
 
                 ],
             } );
-        var hideColumnIndex = -1;
-        var column = dataTable.column(hideColumnIndex);
-        column.visible(false);
         var date_to = $('#date_to');
         var date_from = $('#date_from');
         
