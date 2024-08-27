@@ -272,6 +272,32 @@ legend {
     </div>
 
 </fieldset>
+    <fieldset>
+        <legend>Conversion Into:</legend>
+        <div class="form-group row add-item">
+            <div class="warning"></div>
+
+            <!-- Product field - will take full width on small screens and 8 columns on larger screens -->
+            <div class="col-8 col-md-8">
+                <label for="product" class="control-label">Product:</label>
+                <div class="input-wrapper"> 
+                    <input type="text" class="form-control" name="product" id="convert_product" list="productList"> 
+                    <datalist id="productList">
+                        {% for product in products %}
+                        <option value="{{product.name}}"></option>
+                        {% endfor %}
+                    </datalist>
+                </div> 
+            </div>
+
+            <!-- Quantity and Add Price button will be on the same row on small screens -->
+            <div class="col-4 col-md-4">
+                <label for="quantity">Quantity:</label>
+                <input type="number" name="quantity" class="form-control" id="convert_quantity" value="" min="1" step="1" default="0">
+            </div>
+        </div>
+    </fieldset>
+
 <button type="button" style = "width:100%; margin-top:20px; " class="btn btn-secondary" id="saveConversion">Convert</button>
 </form>
 <div class="container-fluid">
@@ -324,7 +350,8 @@ $(document).ready(function () {
         $('#id').val(data.conversion.id);
         $('#date').val(data.conversion.date);
         $('#identifier').val(data.conversion.identifier);
-
+        $("#convert_product").val(data.product_instance.product)
+        $("#convert_quantity").val(data.product_instance.quantity)
         // Populate products table
         itemTable.clear(); // Clear existing rows
         $.each(data.products, function(index, product) {
@@ -605,6 +632,8 @@ $(document).ready(function () {
         var identifier = $('#identifier').val().trim();
         var date = $('#date').val();
         var conversion_id = $('#id').val();
+        var convertion_product = $('#convert_product').val();
+        var convertion_quantity = $('#convert_quantity').val();
         if(identifier == ""){
             $('#identifier').focus()
             return showMessage('danger',"Add Identifier")
@@ -636,6 +665,8 @@ $(document).ready(function () {
             date:date,
             items: itemsData,
             services: servicesData,
+            convertion_product:convertion_product,
+            convertion_quantity:convertion_quantity,
             csrfmiddlewaretoken: '{{ csrf_token }}'
         };
         if(conversion_id){

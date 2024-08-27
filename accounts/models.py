@@ -130,3 +130,4 @@ class ProductConversion(models.Model):
     conversion = models.ForeignKey(Conversion,on_delete=models.CASCADE)
     product = models.ForeignKey(Product,on_delete=models.CASCADE)
     quantity = models.PositiveBigIntegerField()
+    converted = models.BooleanField(default=False)

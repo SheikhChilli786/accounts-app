@@ -15,15 +15,26 @@ def adjust_product_quantity_on_update(sender,instance,**kwargs):
 @receiver(post_save,sender=ProductConversion)
 def update_product_quantity_on_save(sender, instance, created, **kwargs):
     if created:
-        instance.product.quantity -= int(instance.quantity)
-        instance.product.save()
+        if instance.converted == True:
+            print("increased quantity of",instance.product.name,"by",instance.quantity)
+            instance.product.quantity += int(instance.quantity)
+            instance.product.save()
+        else:
+            print("descreas quantity of",instance.product.name,"by",instance.quantity)
+            instance.product.quantity -= int(instance.quantity)
+            instance.product.save()
 
 @receiver(post_delete, sender=ProductConversion)
 def restore_product_quantity_on_delete(sender, instance, **kwargs):
     # Restore the product quantity when an order is deleted
-    instance.product.quantity += int(instance.quantity)
-    instance.product.save()
-
+    if instance.converted == True:
+        print("increased quantity of",instance.product.name,"by",instance.quantity)
+        instance.product.quantity -= int(instance.quantity)
+        instance.product.save()
+    else:
+        print("descreas quantity of",instance.product.name,"by",instance.quantity)
+        instance.product.quantity += int(instance.quantity)
+        instance.product.save()
 @receiver(post_save,sender=Transaction)
 def call_get_balance_when_transaction_saved(sender,instance,created,**kwargs):
     if instance.party:

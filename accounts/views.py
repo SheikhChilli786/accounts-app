@@ -1076,6 +1076,8 @@ def save_conversion(request):
     identifier = data.get('identifier','')
     items_data = data.get('items', [])
     services_data = data.get('services', [])
+    convertion_product = data.get('convertion_product','')
+    convertion_quantity = data.get('convertion_quantity','')
     if date:
         form_obj, created = Form.objects.get_or_create(created_at=date)
     else:
@@ -1103,9 +1105,9 @@ def save_conversion(request):
                         'issue':'E100',
                         'message':"identifier already exists"
                     })
-                
-                
-                # Extract items and services from the data
+                converted_product = Product.objects.get(user=user,name=convertion_product)
+                ProductConversion.objects.create(conversion=conversion,product=converted_product,quantity=convertion_quantity,converted=True)
+            # Extract items and services from the data
             # Process items data
                 for item in items_data:
                     # Assuming each item has 'product' and 'quantity' fields
@@ -1147,6 +1149,8 @@ def save_conversion(request):
             conversion.save()
             Transaction.objects.filter(conversion=conversion).delete()
             ProductConversion.objects.filter(conversion=conversion).delete()
+            converted_product = Product.objects.get(user=user,name=convertion_product)
+            ProductConversion.objects.create(conversion=conversion,product=converted_product,quantity=convertion_quantity,converted=True)
             for item in items_data:
                 iproduct = item.get('product')
                 iquantity = item.get('quantity')
@@ -1217,7 +1221,8 @@ def edit_conversion(request,pk):
     if request.method == "GET":
         conversion = Conversion.objects.get(pk=pk)
         transactions = Transaction.objects.filter(conversion=conversion)
-        product_conversions = ProductConversion.objects.filter(conversion=conversion)
+        product_conversions = ProductConversion.objects.filter(conversion=conversion,converted=False)
+        product_converted = ProductConversion.objects.filter(conversion=conversion,converted=True)
 
         conversion_data = {
             'identifier':conversion.identifier,
@@ -1241,9 +1246,15 @@ def edit_conversion(request,pk):
                 'id':product_conversion.pk
             } for product_conversion in product_conversions
         ]
+        product_converted_instance = {
+            'product':product_converted[0].product.name,
+            'quantity':product_converted[0].quantity
+        } 
+
         return JsonResponse({
             'status':'success',
             'conversion':conversion_data,
             'transactions':transactions_list,
-            'products':products_list
+            'products':products_list,
+            'product_instance':product_converted_instance
         })
