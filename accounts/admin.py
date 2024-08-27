@@ -16,3 +16,9 @@ class adminProduct(admin.ModelAdmin):
 @admin.register(models.TradeItem)
 class adminItems(admin.ModelAdmin):
     pass
+@admin.register(models.Conversion)
+class adminConversion(admin.ModelAdmin):
+    pass
+@admin.register(models.ProductConversion)
+class adminProductConversion(admin.ModelAdmin):
+    pass

@@ -1,4 +1,5 @@
 import json
+from django.views.decorators.csrf import csrf_exempt
 from django.db import transaction
 from django.db.models import Max
 from django.core import serializers
@@ -48,6 +49,7 @@ def user_detail(request, pk=None):
             options.append(('product','Product')) if (request.user.has_perm('accounts.add_product') or request.user == user) else None
             options.append(('manage_transactions','Manage Transactions')) if (request.user.has_perm('accounts.can_manage_transactions') or request.user == user) else None
             options.append(('manage_s_p','Manage Sale/purchases')) if (request.user.has_perm('accounts.can_manage_s_p') or request.user == user) else None 
+            options.append(('manage_conversion','Conversion Form'))  
         else:
             return redirect('accounts:user-detail')
     else:
@@ -60,6 +62,7 @@ def user_detail(request, pk=None):
         options.append(('product','Product')) if (request.user.has_perm('accounts.add_product') or request.user == user) else None
         options.append(('manage_transactions','Manage Transactions')) if (request.user.has_perm('accounts.can_manage_transactions') or request.user == user) else None
         options.append(('manage_s_p','Manage Sale/purchases')) if (request.user.has_perm('accounts.can_manage_s_p') or request.user == user) else None
+        options.append(('manage_conversion','Conversion Form')) 
     context['options'] = options
     return render(request,'accounts/party.html',context)
 
@@ -1023,3 +1026,224 @@ def delete_product(request, pk=None):
         resp['msg'] = "There's no data sent in the request"
 
     return HttpResponse(json.dumps(resp),content_type="application/json")
+
+@login_required
+def conversion(request,pk=None):
+    context = context_data(request)
+    context['page'] = 'manage_transaction'
+    context['page_title'] = 'Manage Transaction'
+    user_id = request.GET.get('user_id', '')
+    try:
+        user = User.objects.get(pk=user_id)
+    except User.DoesNotExist:
+        return HttpResponse("The user Couldn't be found. Please Refresh and Try again")
+    
+    if pk is None:
+        # Adding a new transaction
+        if request.user.is_superuser or request.user == user or  (user.assigned_staff.user if hasattr(user.assigned_staff,'user') else False == request.user and request.user.has_perm('accounts.can_manage_transactions')):
+            
+            context['user_id'] = user.id
+            context['parties'] = Party.objects.filter(user=user, delete_flag=0)
+            context['products'] = Product.objects.filter(user=user,delete_flag=0)
+        else:
+            return HttpResponse("You are not allowed to manage Transactions. Please contact admin for further queries")
+        
+    return render(request, 'accounts/manage_conversion.html', context)
+
+@login_required
+def check_identifier(request):
+    if request.method == 'GET':
+        identifier = request.GET.get('identifier', None)  # Get identifier from request
+        
+        if identifier is not None:
+            # Check if the identifier exists in the model
+            exists = Conversion.objects.filter(identifier=identifier).exists()
+
+            # Return JSON response
+            return JsonResponse({'exists': exists})
+        
+        # If no identifier is provided
+        return JsonResponse({'error': 'No identifier provided'}, status=400)
+    
+    
+@login_required
+@csrf_exempt
+def save_conversion(request):
+    data = json.loads(request.body)
+    conversion_id = data.get('id','')
+    user_id = data.get('user_id','')
+    date = data.get('date','')
+    identifier = data.get('identifier','')
+    items_data = data.get('items', [])
+    services_data = data.get('services', [])
+    if date:
+        form_obj, created = Form.objects.get_or_create(created_at=date)
+    else:
+        return JsonResponse({
+            'status':'error',
+            'issue':'E101',
+            'message':"Please Add Date"
+        })
+    try:
+        user = User.objects.get(pk=user_id)
+    except:
+        return JsonResponse({
+            'status':'error',
+            'message':'No user with this id exist'
+        })
+    if request.method == 'POST':
+        try:
+
+            # Initialize lists to hold items and services
+            with transaction.atomic():
+                conversion,created = Conversion.objects.get_or_create(user=user,identifier=identifier,date=date)
+                if not created:
+                    return JsonResponse({
+                        'status':'error',
+                        'issue':'E100',
+                        'message':"identifier already exists"
+                    })
+                
+                
+                # Extract items and services from the data
+            # Process items data
+                for item in items_data:
+                    # Assuming each item has 'product' and 'quantity' fields
+                    iproduct = item.get('product')
+                    iquantity = item.get('quantity')
+                    product = Product.objects.get(name=iproduct,user=user)
+                    # Append a tuple or dictionary to the items list
+                    ProductConversion.objects.create(conversion=conversion,product=product,quantity=iquantity)
+                    
+                # Process services data
+                for service in services_data:
+                    # Assuming each service has 'party', 'amount', and 'description' fields
+                    party = service.get('party')
+                    amount = service.get('amount')
+                    description = service.get('description')
+
+                    party = Party.objects.get(name=party,user=user)
+                    Transaction.objects.create(party=party,credit=amount,description=description,form=form_obj,conversion=conversion)
+
+                # Return a response indicating success and the processed data (optional)
+                return JsonResponse({
+                    'status': 'success',
+                    'message': "Conversion Successfully Performed",
+                    'conversion_data': {
+                        'date': conversion.date,  # or however you want to format the date
+                        'id': conversion.pk,
+                        'identifier': conversion.identifier,
+                        
+                    }
+                })
+        except json.JSONDecodeError:
+            # Handle JSON decoding error
+            return JsonResponse({'status': 'error', 'message': 'Invalid JSON data'})
+    elif request.method == 'PUT':
+        with transaction.atomic():
+            conversion = Conversion.objects.get(pk=conversion_id)
+            conversion.identifier = identifier
+            conversion.date = date
+            conversion.save()
+            Transaction.objects.filter(conversion=conversion).delete()
+            ProductConversion.objects.filter(conversion=conversion).delete()
+            for item in items_data:
+                iproduct = item.get('product')
+                iquantity = item.get('quantity')
+                product = Product.objects.get(name=iproduct,user=user)
+                ProductConversion.objects.create(conversion=conversion,product=product,quantity=iquantity)
+
+            for service in services_data:
+                party = service.get('party')
+                amount = service.get('amount')
+                description = service.get('description')
+
+                party = Party.objects.get(name=party,user=user)
+                Transaction.objects.create(party=party,credit=amount,description=description,form=form_obj,conversion=conversion)
+
+        return JsonResponse({
+            'status':'success',
+            'message': "Conversion Successfully Updated",
+        })
+    else:
+    # Return error response for non-POST requests
+        return JsonResponse({'status': 'error', 'message': 'Invalid request method'})
+
+@login_required
+def delete_conversion(request,pk): 
+    if request.method == "DELETE":
+        conversion = Conversion.objects.get(pk=pk)
+        transactions = Transaction.objects.filter(conversion=conversion)
+        transactions.delete()
+        conversion.delete()
+        return JsonResponse({'status':'success'})
+    
+@login_required
+def conversion_list(request):
+    if request.method == 'GET':
+        resp = {
+            'msg' : "",
+            'status': 'failed'
+        }
+        user_id = request.GET.get('user_id')
+        limit = int(request.GET.get('limit'))
+        
+        try:
+            user = User.objects.get(pk=user_id)
+        except:
+            resp['msg'] = "User Couldn't be found. Please Try Again."
+        if user:
+            if request.user.is_superuser or user == request.user or (user.assigned_staff.user if hasattr(user.assigned_staff, 'user') else None==request.user and request.user.has_perm('accounts.view_conversion') ):
+                if limit == -1:
+                    conversions = Conversion.objects.select_related('user').filter(user=user)
+                else:
+                    conversions = Conversion.objects.select_related('user').filter(user=user)[:limit]
+                resp['conversion'] =[{'identifier': conversion.identifier,
+                                    'date': conversion.date,
+                                    'id':conversion.pk} for conversion in conversions]
+                resp['status'] = "success"
+                return JsonResponse(resp)
+        
+            else:
+                resp['msg'] = "You are not authorized to view transaction"
+                return JsonResponse(resp)
+        else:
+            JsonResponse(status=204)
+    else:
+        return HttpResponse (status=405)
+
+@login_required
+def edit_conversion(request,pk):
+    if request.method == "GET":
+        conversion = Conversion.objects.get(pk=pk)
+        transactions = Transaction.objects.filter(conversion=conversion)
+        product_conversions = ProductConversion.objects.filter(conversion=conversion)
+
+        conversion_data = {
+            'identifier':conversion.identifier,
+            'date':conversion.date,
+            'id':conversion.pk,
+        }
+
+        transactions_list = [
+            {
+                'party':transaction.party.name,
+                'description':transaction.description,
+                'amount': transaction.credit,
+                'id':transaction.pk
+            } for transaction in transactions
+        ]
+
+        products_list = [
+            {
+                'product':product_conversion.product.name,
+                'quantity':product_conversion.quantity,
+                'id':product_conversion.pk
+            } for product_conversion in product_conversions
+        ]
+        return JsonResponse({
+            'status':'success',
+            'conversion':conversion_data,
+            'transactions':transactions_list,
+            'products':products_list
+        })

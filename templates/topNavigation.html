@@ -126,6 +126,32 @@
                 }
             });
         })
+         $('#new_form_manage_conversion').click(function(){
+            $.ajax({
+                url: "{% url 'accounts:conversion'  %}",
+                method: 'GET',
+                data: {
+                    'user_id': {{user.id}},
+                },
+                error: err =>{
+                        alert("An error occured")
+                    },
+                success: function(resp){
+                    if(resp){
+                        
+                        $('#myModal .modal-body').html(resp)
+                        
+                        $('#uni_modal').modal({
+                            backdrop:'static',
+                            keyboard:false,
+                            focus:true
+                        })
+                        $("#myModal").modal('show')
+                        end_loader()
+                    }
+                }
+            });
+        })
         $('#new_form_product').click(function(){
             window.location.href = "{% url 'accounts:products-pk' pk=user.id %}"
         })

@@ -28,4 +28,10 @@ urlpatterns = [
     path('save_products/',save_product,name="save-product"),
     path('delete_product/<int:pk>',delete_product,name="delete-product"),
     path('print/<int:pk>',print_veiw,name="print-view-pk"),
+    path('manage_conversion/',conversion,name="conversion"),
+    path('save_conversion/',save_conversion,name="save-conversion"),
+    path('identifier/',check_identifier,name="check-id"),
+    path('delete_conversion/<int:pk>',delete_conversion,name="delete-conversion"),
+    path('edit_conversion/<int:pk>',edit_conversion,name="edit-conversion"),
+    path('conversions/',conversion_list,name="conversion-list"),
 ]

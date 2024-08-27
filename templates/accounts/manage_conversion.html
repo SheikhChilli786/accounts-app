@@ -1,0 +1,801 @@
+{% load static %}
+<style>
+    .btn-custom {
+        background-color: #6C757D;
+        color: #ffffff; /* Text color */
+        border: none;
+        border-radius: 4px;
+        padding-left: 10px;
+        padding-right: 10px;
+        padding-top: 8px;
+        padding-bottom: 8px;
+        transition: background-color 0.3s ease;
+    }
+
+    .btn-custom:focus {
+        background-color: #2B2F33; /* Darken background color on hover */
+        color: #ffffff;
+    }
+
+    body {
+        background-color: #f8f9fa;
+    }
+
+    .container-fluid {
+        margin-top: 30px;
+    }
+
+    form {
+        background-color: #ffffff;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .form-group {
+        margin-bottom: 15px;
+    }
+
+    label {
+        font-weight: bold;
+        margin-bottom: 5px;
+        display: block;
+    }
+
+    input[type="text"],
+    input[type="date"],
+    input[type="number"],
+    textarea {
+        width: 100%;
+        padding: 8px;
+        border: 1px solid #ced4da;
+        border-radius: 4px;
+        box-sizing: border-box;
+        margin-bottom: 10px; /* Improved spacing between input elements */
+    }
+
+    button {
+        cursor: pointer;
+    }
+
+    .btn-secondary {
+        background-color: #6c757d;
+        color: #ffffff;
+    }
+
+    .list-group-item {
+        background-color: #ffffff;
+        margin-top: 10px;
+        border: 1px solid #ced4da;
+        border-radius: 4px;
+        padding: 15px; /* Improved padding for better readability */
+    }
+
+    .list-group-item h5 {
+        margin-bottom: 0;
+    }
+
+    .list-group-item .btn-danger {
+        margin-top: 10px;
+    }
+
+    .collapse.multi-collapse {
+        margin-top: 10px;
+    }
+
+    .btn-primary {
+        margin-right: 10px;
+    }
+
+    .btn-danger {
+        margin-right: 10px;
+    }
+
+    .text-danger {
+        color: #dc3545;
+        margin-top: 5px; /* Improved spacing for better readability */
+    }
+
+    .flex-container {
+        display: flex; /* Use flexbox */
+        justify-content: space-between; /* Space items evenly inside container */
+        align-items: center; /* Center items vertically */
+        width: 100%;
+        height: 100%;
+    }
+
+    .discount-inputs {
+        display: flex;
+        align-items: center;
+    }
+
+    .discount-inputs span {
+        margin: 0 8px; /* Adjust spacing between elements */
+    }
+
+    .input-wrapper {
+        position: relative;
+        display: inline-block;
+        width: 100%;
+    }
+
+    .input-wrapper input {
+        padding-right: 20px;
+    }
+
+    fieldset {
+    border: 1px solid #ced4da;
+    padding: 10px;
+    margin-bottom: 20px;
+    border-radius: 4px;
+    position: relative;
+    padding-top: 20px; 
+}
+
+legend {
+    font-weight: bold;
+    font-size: 18px;
+    padding: 0 10px;
+    margin-bottom: 0;
+    width: auto;
+    position: absolute;
+    top: -12px; 
+    left: 10px; 
+    background-color: #ffffff; 
+    padding: 0 5px;
+}
+#conversion-table th {
+        text-align: left; /* Ensures that the table headers are left-aligned */
+    }
+#conversion-table td {
+        text-align: left; /* Ensures that the table headers are left-aligned */
+    }
+
+</style>
+<body>
+<form id="conversionForm">
+{% csrf_token %}
+    <div id="message-container"></div> <!-- Message container for alerts -->
+        <div class="form-group row">
+        <div class="col-5 col-md-5">
+            <label for="date">Date:</label>
+            <input type="date" name='date' value = "" class="form-control" value="{{transaction.form.created_at}}" id="date" required>
+            <input type="hidden" name='id' value = ""   id="id" >
+        </div>
+
+            <div class="col-5 col-md-6">
+                <label for="identifier">Identifier:</label>
+                <input type="text" name='identifier' value = "" class="form-control"  id="identifier" required>
+
+            </div>
+            <div class="col-2 col-md-1">
+                <label>&nbsp;</label>
+                <button type="button" class="btn btn-custom" id="search-id">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+
+          <input type="hidden" id="user_id" name='user_id' value="{{user_id}}"></input>
+        </div>
+    <fieldset>
+        <legend>Items Used:</legend>
+        <div class="form-group row add-item">
+            <div class="warning"></div>
+
+            <!-- Product field - will take full width on small screens and 8 columns on larger screens -->
+            <div class="col-5 col-md-8">
+                <label for="product" class="control-label">Product:</label>
+                <div class="input-wrapper"> 
+                    <input type="text" class="form-control" name="product" id="product" list="productList"> 
+                    <datalist id="productList">
+                        {% for product in products %}
+                        <option value="{{product.name}}"></option>
+                        {% endfor %}
+                    </datalist>
+                </div> 
+            </div>
+
+            <!-- Quantity and Add Price button will be on the same row on small screens -->
+            <div class="col-5 col-md-3">
+                <label for="quantity">Quantity:</label>
+                <input type="number" name="quantity" class="form-control" id="quantity" value="" min="1" step="1" default="0">
+            </div>
+            <div class="col-2 col-md-1">
+                <label>&nbsp;</label>
+                <button type="button" class="btn btn-custom" id="addPrice">
+                    <i class="fas fa-plus"></i>
+                </button>
+            </div>
+        </div>
+        <div class="form-group">
+            <table class="display cell-border" id="itemTable" style="width:100%">
+            <thead>
+                <tr>
+                    <th>Sr #</th>
+                    <th>Product</th>
+                    <th>Quantity</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Item rows will be dynamically added here -->
+            </tbody>
+            </table>
+        </div>
+    </fieldset>
+    <fieldset>
+    <legend>Party Services:</legend>
+    <div class="form-group row">
+        <div class="col-6 col-md-6">
+            <label for="party" class="control-label">Party:</label>
+            <input type="text" id="party" value="" name="name" list="partyList" class="form-control" required>
+            <datalist id="partyList">
+                {% for party in parties %}
+                    <option value="{{party.name}}">
+                {% endfor %}
+            </datalist>
+        </div>
+        <div class="col-6 col-md-6">
+            <label for="credit">Amount:</label>
+            <input type="number" name="credit" class="form-control" id="amount" min="0" step="0.01" value = "" default="0" >
+        </div>
+    </div>
+    <div class="form-group row">
+        <div class="col-10 col-md-11">
+            <label for="description">Description:</label>
+            <textarea class="form-control" name="description" id="description" rows="1" ></textarea>
+        </div>
+            <div class="col-2 col-md-1">
+                <label>&nbsp;</label>
+                <button type="button" class="btn btn-custom" id="addService">
+                    <i class="fas fa-plus"></i>
+                </button>
+            </div>
+
+    </div>
+
+        <div class="form-group">
+            <table class="display cell-border" id="service-table" style="width:100%">
+            <thead>
+                <tr>
+                    <th>Sr #</th>
+                    <th>Party</th>
+                    <th>Description</th>
+                    <th>Amount</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Item rows will be dynamically added here -->
+            </tbody>
+            </table>
+    </div>
+
+</fieldset>
+<button type="button" style = "width:100%; margin-top:20px; " class="btn btn-secondary" id="saveConversion">Convert</button>
+</form>
+<div class="container-fluid">
+    <div class="transaction_view_warning"></div>
+    <button type="button" class="btn btn-secondary" id="toggleTransactions">
+        View Recent Conversions
+    </button>
+    <select id="conversionLimit" class="btn btn-secondary">
+        <option value="100">100</option>
+        <option value="500">500</option>
+        <option value="-1">All</option>
+    </select>
+    <div id="conversionListContainer" >
+        <div id="conversionList">
+        <table class="display cell-border" id="conversion-table" style="width:100%">
+            <thead>
+                <tr>
+                    <th>Sr #</th>
+                    <th>Date</th>
+                    <th>Identifier</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Item rows will be dynamically added here -->
+            </tbody>
+        </table>
+
+        </div>
+    </div>
+</div>
+
+</body>
+<script>
+$(document).ready(function () {
+    var itemTable;
+    var serviceTable;
+        const actionDropdown = `
+            <button class="btn btn-light btn-sm rounded-0 border delete-data-transaction"  type="button">
+            <i class="fa fa-trash text-danger"></i>
+            </button>
+        `;
+    function clearForm() {
+        $('#conversionForm')[0].reset(); // Reset the form
+        itemTable.clear().draw(); // Clear item table
+        serviceTable.clear().draw(); // Clear service table
+    }
+    function populateForm(data) {
+        // Populate conversion data
+        $('#id').val(data.conversion.id);
+        $('#date').val(data.conversion.date);
+        $('#identifier').val(data.conversion.identifier);
+
+        // Populate products table
+        itemTable.clear(); // Clear existing rows
+        $.each(data.products, function(index, product) {
+            itemTable.row.add([
+                index + 1,
+                product.product,
+                product.quantity,
+                actionDropdown
+            ]).draw();
+        });
+
+        // Populate transactions table
+        serviceTable.clear(); // Clear existing rows
+        $.each(data.transactions, function(index, transaction) {
+            serviceTable.row.add([
+                index + 1,
+                transaction.party,
+                transaction.description,
+                transaction.amount,
+                actionDropdown
+            ]).draw();
+        });
+    }
+    $('#conversionList').on('click', '.edit-data-conversion',function() {
+        var url = $(this).data('url');  // Get the data-url from the button
+
+        $.ajax({
+            url: url,
+            type: 'GET',  // Assuming you're fetching data with a GET request
+            success: function(response) {
+                // Assuming your response is a JSON object with the data to populate
+                if (response.status === 'success') {
+                    clearForm();
+                    populateForm(response);
+                    $('#identifier').focus();
+                } else {
+                    {% comment %} alert(response.msg || "An error occurred while fetching data."); {% endcomment %}
+                }
+            },
+            error: function() {
+                alert("An error occurred while making the request.");
+            }
+        });
+    });
+
+    $('#toggleTransactions').click(function () {
+        var container = $('#conversionListContainer');
+        var button = $(this);
+
+        if (container.is(':visible')) {
+            // Hide the transaction list container with a slide-up animation
+            container.slideUp('slow', function () {
+                button.text('View Recent Conversions');
+            });
+        } else {
+            // Show the transaction list container with a slide-down animation
+            container.slideDown('slow', function () {
+                button.text('Hide Conversions');
+            });
+        }
+    });
+
+    $('#myModal').off('shown.bs.modal').on('shown.bs.modal', function () {
+        itemTable = $('#itemTable').DataTable({
+            searching: false,
+            paging: false,
+            scrollY: "100px",
+            responsive: {
+                details: {
+                    type: 'column',
+                    target: 'tr'
+                }
+            },
+            order:[
+                [0, 'desc']   
+            ],
+            columnDefs: [
+                {
+                    orderable: false,
+                    targets: [1, 2, 3]
+                },
+                { "width": "80px", "targets": -1 },
+                { responsivePriority: 1, targets: 1 },
+                { responsivePriority: 2, targets: -1 },
+                {
+                    targets: 0,
+                    visible: false,
+                }
+            ],
+            scrollCollapse: true,
+        });
+
+
+        conversionTable = $('#conversion-table').DataTable({
+            responsive: {
+                details: {
+                    type: 'column',
+                    target: 'tr'
+                }
+            },
+            columnDefs: [
+                {
+                    orderable: false,
+                    targets: [1, 2]
+
+                },
+                { "width": "50px", "targets": -1 },
+                { responsivePriority: 1, targets: 2 },
+                { responsivePriority: 2, targets: -1 },
+
+                {
+                    targets: 0,
+                    visible: false,
+                }
+
+            ],
+            scrollCollapse: true,
+        });
+
+        serviceTable = $('#service-table').DataTable({
+            searching: false,
+            paging: false,
+            scrollY: "100px",
+            responsive: {
+                details: {
+                    type: 'column',
+                    target: 'tr'
+                }
+            },
+            columnDefs: [
+                {
+                    orderable: false,
+                    targets: [1, 2, 3, 4]
+                },
+                { "width": "80px", "targets": -1 },
+                { responsivePriority: 1, targets: 1 },
+                { responsivePriority: 2, targets: -1 },
+                { responsivePriority: 3, targets: 3 },
+                {
+                    targets: 0,
+                    visible: false,
+                }
+            ],
+            scrollCollapse: true,
+        });
+        initializeConversionTable()
+    });
+        $('#conversionLimit').on('change',function(){
+        initializeConversionTable()
+    })
+
+    function initializeConversionTable(){
+        var selectedLimit = $('#conversionLimit').find(':selected').val()
+        conversionTable.clear().draw();
+        $.ajax({
+            url: "{% url 'accounts:conversion-list' %}", // URL for the AJAX request
+            type: 'GET',
+            data: {
+                user_id: {{user_id}},
+                limit: selectedLimit
+            },
+            success: function(resp) {
+                if (resp.status === 'success') {
+                    // Populate the DataTable with the response data
+                    resp.conversion.forEach(function(conversion, index) {
+                        conversionTable.row.add([
+                            index + 1, // Sr #
+                            conversion.date, // Date
+                            conversion.identifier, // Identifier
+                            `
+                            <button class="btn btn-light btn-sm rounded-0 border delete-data-conversion" data-url="/delete_conversion/${conversion.id}" type="button">
+                                <i class="fa fa-trash text-danger"></i>
+                            </button>
+                            <button class="btn btn-light btn-sm rounded-0 border edit-data-conversion" data-url="/edit_conversion/${conversion.id}" type="button">
+                                <i class="fa fa-pencil "></i>
+                            </button>
+                            `
+                        ]).draw(false);
+                    });
+                    // Order the table by the second column (date) in descending order
+                    conversionTable.order([1, 'desc']).draw(); 
+                } else {
+                    alert(resp.msg || "An error occurred while fetching data.");
+                }
+            },
+            error: function() {
+                alert("An error occurred while making the request.");
+            }
+        });
+    }
+    $('#addService').on('click', function () {
+        var party = $('#party').val();
+        var amount = $('#amount').val();
+        var description = $('#description').val();
+
+        if (party !== "" && amount !== "") {
+            serviceTable.row.add([
+                '',
+                party,
+                description,
+                amount,
+                actionDropdown
+            ]).draw(false);
+            serviceTable.order([0, 'desc']).draw();
+            $('#party').val('');
+            $('#amount').val('');
+            $('#description').val('');
+        } else {
+            showMessage('warning', 'Please fill in all fields.');
+        }
+    });
+
+    $('#addPrice').on('click', function () {
+        var product = $('#product').val();
+        var quantity = $('#quantity').val();
+
+        if (product !== "" && quantity !== "") {
+            itemTable.row.add([
+                '',
+                product,
+                quantity,
+                actionDropdown
+            ]).draw(false);
+            itemTable.order([0, 'desc']).draw();
+            $('#product').val('');
+            $('#quantity').val('');
+        } else {
+            showMessage('warning', 'Please fill in all fields.');
+        }
+    });
+
+    $('#itemTable tbody').on('click', '.delete-data-transaction', function () {
+        var row = itemTable.row($(this).closest('tr'));
+        row.remove().draw();
+    });
+
+    $('#addPrice').on('keydown', function (e) {
+        if (e.which == 13) {
+            e.preventDefault();
+            $('#product').focus();
+            $('#addPrice').click();
+        }
+    });
+
+    $('#addService').on('keydown', function (e) {
+        if (e.which == 13) {
+            e.preventDefault();
+            $('#party').focus();
+            $('#addService').click();
+        }
+    });
+    $('#search-id').on('click', function() {
+        var identifier = $('#identifier').val();
+
+        $.ajax({
+            type: 'GET',
+            url: '{% url "accounts:check-id" %}',
+            data: {
+                'identifier': identifier
+            },
+            success: function(response) {
+                // Handle the response from the server
+                if (response.exists) {
+                    showMessage('info', 'Identifier exists.');
+                } else {
+                    showMessage('info', 'Identifier does not exist.');
+                }
+            },
+            error: function(xhr, status, error) {
+                // Handle any errors that occur during the request
+                showMessage('danger', 'An error occurred: ' + error);
+            }
+        });
+    });
+    $('#saveConversion').on('click', function (e) {
+        e.preventDefault();
+        var user_id = $('#user_id').val();
+        var identifier = $('#identifier').val().trim();
+        var date = $('#date').val();
+        var conversion_id = $('#id').val();
+        if(identifier == ""){
+            $('#identifier').focus()
+            return showMessage('danger',"Add Identifier")
+            
+        }
+        var itemsData = [];
+        itemTable.rows().every(function (rowIdx, tableLoop, rowLoop) {
+            var data = this.data();
+            itemsData.push({
+                product: data[1],
+                quantity: data[2]
+            });
+        });
+
+        var servicesData = [];
+        serviceTable.rows().every(function (rowIdx, tableLoop, rowLoop) {
+            var data = this.data();
+            servicesData.push({
+                party: data[1],
+                description: data[2],
+                amount: data[3]
+            });
+        });
+
+        var postData = {
+            id:conversion_id,
+            user_id:user_id,
+            identifier:identifier,
+            date:date,
+            items: itemsData,
+            services: servicesData,
+            csrfmiddlewaretoken: '{{ csrf_token }}'
+        };
+        if(conversion_id){
+
+            $.ajax({
+                method:'PUT',
+                url: '{% url "accounts:save-conversion" %}',
+                data: JSON.stringify(postData),
+                success: function (response) {
+                    if (response.status == 'success'){
+                        showMessage('success', response.message);
+                        initializeConversionTable()
+                        clearForm();
+                        $('#identifier').focus();
+                        
+                    }else if(response.status=="error"&&response.issue=="E100") {
+
+                        $('#identifier').focus();
+                        showMessage('danger', response.message);
+                    }else if(response.status=="error"&&response.issue=="E101") {
+
+                        $('#date').focus();
+                        showMessage('danger', response.message); 
+                    }else if(response.status=='error'){
+                        showMessage('danger',response.message)
+                    }
+                },
+                error: function () {
+                    showMessage('danger', 'Error saving data. Please try again.');
+                }
+            });
+        }else{
+            $.ajax({
+                method:'POST',
+                url: '{% url "accounts:save-conversion" %}',
+                data: JSON.stringify(postData),
+                success: function (response) {
+                    if (response.status == 'success'){
+                        showMessage('success', response.message);
+                        $('#identifier').val('');
+                        conversionTable.row.add([
+                            '', 
+                            `${response.conversion_data.date}`,
+                            `${response.conversion_data.identifier}`, // Identifier
+                            `
+                            <button class="btn btn-light btn-sm rounded-0 border delete-data-conversion" 
+                                data-url="/delete_conversion/${response.conversion_data.id}" type="button">
+                                <i class="fa fa-trash text-danger"></i>
+                            </button>
+                            <button class="btn btn-light btn-sm rounded-0 border edit-data-conversion" 
+                                data-url="/edit_conversion/${response.conversion_data.id}" type="button">
+                                <i class="fa fa-pencil"></i>
+                            </button>
+                            `
+                        ]).draw(false);
+                        conversionTable.order([1, 'desc']).draw();
+                        itemTable.clear().draw();
+                        serviceTable.clear().draw();
+                        clearForm();
+                        $('#identifier').focus();
+                    }else if(response.status=="error"&&response.issue=="E100") {
+
+                        $('#identifier').focus();
+                        showMessage('danger', response.message);
+                    }else if(response.status=="error"&&response.issue=="E101") {
+
+                        $('#date').focus();
+                        showMessage('danger', response.message);
+                    }
+                },
+                error: function () {
+                    showMessage('danger', 'Error saving data. Please try again.');
+                }
+            });
+        }
+    });
+
+    function showMessage(type, message) {
+        var messageContainer = $('#message-container');
+        var alertClass = 'alert-' + type;
+        
+        // Create the alert HTML
+        var alertHtml = '<div class="alert ' + alertClass + ' alert-dismissible fade show" role="alert">' +
+                        message +
+                        '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>' +
+                        '</div>';
+                        
+        // Set the alert HTML
+        messageContainer.html(alertHtml);
+
+        // Automatically hide the alert after 4 seconds (4000 milliseconds)
+        setTimeout(function() {
+            messageContainer.find('.alert').alert('close');
+        }, 4000);
+    }
+    $('#conversionList').on('click', '.delete-data-conversion',function() {
+        $('#myModal').modal('hide');
+        _conf("Are you sure to delete this Transaction?", 'delete_conversion', ["'" + $(this).attr('data-url') + "'"])
+    })
+
+});
+    function delete_conversion(url) {
+        var date = $('#date').val()
+            var _this = $('#confirm_modal .modal-body')
+            $('.err-msg').remove();
+            var el = $('<div>')
+            el.addClass("alert alert-danger err-msg")
+            el.hide()
+            start_loader()
+            $.ajax({
+                headers: {
+                    "X-CSRFToken": "{{csrf_token}}"
+                },
+                url: url,
+                dataType: 'JSON',
+                method:'DELETE',
+                error: err => {
+                    alert("an error occurred.")
+                    end_loader()
+                },
+                success: function(resp) {
+                    if (resp.status == 'success') {
+                        $('#confirm_modal').modal('hide');
+                        $.ajax({
+                            url: "{% url 'accounts:conversion'  %}",
+                            method: 'GET',
+                            data: {
+                                'user_id': {{user_id}},
+                            },
+                            error: err =>{
+                                    el.html("An error occurred")
+                                    _this.prepend(el)
+                                    el.show()
+                                },
+                            success: function(resp){
+                                if(resp){
+                                    $('#myModal .modal-body').html(resp)
+                                    
+                                    $('myModal').modal({
+                                        backdrop:'static',
+                                        keyboard:false,
+                                        focus:true
+                                    })
+                                    $("#myModal").modal('show')
+                                    end_loader()
+                                }
+                            }
+                        });
+
+                    } else if(resp.status == "error") {
+                        el.html(resp.msg)
+                        _this.prepend(el)
+                        el.show()
+                    } else {
+
+                    }
+                    end_loader()
+                }
+
+            })
+        }
+
+</script>
