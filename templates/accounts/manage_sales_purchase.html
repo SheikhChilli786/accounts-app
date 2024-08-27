@@ -992,6 +992,20 @@ $(document).ready(function () {
         
         $('.party-btn').on('click',function(){
             name = $('#name').val()
+            if (name==""){
+                    var el = $('<div>')
+                        el.addClass("alert alert-danger err-msg")
+                        el.hide()
+                        el.text("Party cannot be empty");
+
+                        $('#transactionForm').prepend(el)
+                        el.show('slow')
+                        setTimeout(function(){
+                            el.hide('slow')
+
+                        },2000)      
+                return;
+            }
             var formData = new FormData();
             formData.append('user',$('#transactionForm input[name="user_id"]').val())
             formData.append('name',$('#transactionForm input[name="name"]').val())
@@ -1051,6 +1065,21 @@ $(document).ready(function () {
         // Set the cursor on the name field when modal is opened
         $('.product-btn').on('click',function(){
             name  = $('#product').val()
+            if (name==""){
+                        var el = $('<div>')
+                        el.addClass("alert alert-danger err-msg")
+                        el.hide()
+                        el.text("Product cannot be empty");
+
+                        $('#transactionForm').prepend(el)
+                        el.show('slow')
+                        setTimeout(function(){
+                            el.hide('slow')
+
+                        },2000)      
+                return;
+
+            }
             start_loader()
             $.ajax({
                 headers: {

@@ -150,6 +150,26 @@ legend {
 #conversion-table td {
         text-align: left; /* Ensures that the table headers are left-aligned */
     }
+         .input-wrapper { 
+            position: relative; 
+            display: inline-block; 
+            width:100%;
+        } 
+  
+        .input-wrapper input { 
+            padding-right: 20px; 
+        } 
+  
+        .input-wrapper button { 
+            position: absolute; 
+            top: 0; 
+            right: 0; 
+            border: none; 
+            padding-top:10px;
+            background-color: transparent; 
+            cursor: pointer; 
+        } 
+
 
 </style>
 <body>
@@ -287,6 +307,7 @@ legend {
                         <option value="{{product.name}}"></option>
                         {% endfor %}
                     </datalist>
+                    <button type="button" class="product-btn"><strong> &#43</strong> </button> 
                 </div> 
             </div>
 
@@ -316,7 +337,7 @@ legend {
             <thead>
                 <tr>
                     <th>Sr #</th>
-                    <th>Date</th>
+                    <th class='desktop tablet'>Date</th>
                     <th>Identifier</th>
                     <th>Action</th>
                 </tr>
@@ -413,6 +434,56 @@ $(document).ready(function () {
             });
         }
     });
+        $('.product-btn').on('click',function(){
+            name  = $('#convert_product').val()
+            if (name==""){
+                var el = $('<div>')
+                el.addClass("alert alert-danger err-msg")
+                el.hide()
+                el.text("Product cannot be empty");
+
+                $('.warning').prepend(el)
+                el.show('slow')
+                setTimeout(function(){
+                    el.hide('slow')
+
+                },2000)      
+                return;
+
+            }
+            start_loader()
+            $.ajax({
+                headers: {
+                    "X-CSRFToken": '{{csrf_token}}'
+                },
+                url:"{% url 'accounts:save-product' %}",
+                data:JSON.stringify({
+                    "user_id":{{user_id}},
+                    "name": name
+                }),
+                method:'POST',
+                error: err =>{
+                    alert("an error occured")
+                    end_loader()
+                },
+                success:function(resp){
+                    $('#productList').append($("<option>").attr('value',name))
+                    var el = $('<div>')
+                    el.addClass("alert alert-success err-msg")
+                    el.hide()
+                    el.text(resp.msg);
+
+                $('.warning').prepend(el)
+                el.show('slow')
+                $('#covert_quantity').focus();
+                setTimeout(function(){
+                    el.hide('slow')
+
+                },2000)      
+                end_loader()
+                }
+            })
+        })
 
     $('#myModal').off('shown.bs.modal').on('shown.bs.modal', function () {
         itemTable = $('#itemTable').DataTable({
@@ -455,12 +526,12 @@ $(document).ready(function () {
             columnDefs: [
                 {
                     orderable: false,
-                    targets: [1, 2]
+                    targets: [1, 2,3]
 
                 },
-                { "width": "50px", "targets": -1 },
-                { responsivePriority: 1, targets: 2 },
-                { responsivePriority: 2, targets: -1 },
+                { "width": "80px", "targets": -1 },
+                { responsivePriority: 2, targets: 2 },
+                { responsivePriority: 1, targets: -1 },
 
                 {
                     targets: 0,
@@ -487,6 +558,7 @@ $(document).ready(function () {
                     targets: [1, 2, 3, 4]
                 },
                 { "width": "80px", "targets": -1 },
+                { "width": "150px", "targets": 2 },
                 { responsivePriority: 1, targets: 1 },
                 { responsivePriority: 2, targets: -1 },
                 { responsivePriority: 3, targets: 3 },

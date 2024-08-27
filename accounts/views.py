@@ -1125,7 +1125,7 @@ def save_conversion(request):
                     description = service.get('description')
 
                     party = Party.objects.get(name=party,user=user)
-                    Transaction.objects.create(party=party,credit=amount,description=description,form=form_obj,conversion=conversion)
+                    Transaction.objects.create(party=party,debit=amount,description=description,form=form_obj,conversion=conversion)
 
                 # Return a response indicating success and the processed data (optional)
                 return JsonResponse({
@@ -1163,7 +1163,7 @@ def save_conversion(request):
                 description = service.get('description')
 
                 party = Party.objects.get(name=party,user=user)
-                Transaction.objects.create(party=party,credit=amount,description=description,form=form_obj,conversion=conversion)
+                Transaction.objects.create(party=party,debit=amount,description=description,form=form_obj,conversion=conversion)
 
         return JsonResponse({
             'status':'success',
@@ -1234,7 +1234,7 @@ def edit_conversion(request,pk):
             {
                 'party':transaction.party.name,
                 'description':transaction.description,
-                'amount': transaction.credit,
+                'amount': transaction.debit,
                 'id':transaction.pk
             } for transaction in transactions
         ]
