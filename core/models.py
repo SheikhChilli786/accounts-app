@@ -3,7 +3,7 @@ from django.contrib.auth.models import AbstractUser
 
 # Create your models here.
 class User(AbstractUser):
-    phone_number = models.CharField(unique=True)
+    phone_number = models.CharField(unique=True,max_length=15)
     question = models.TextField(blank=True,null=True)
     answer = models.TextField(blank=True,null=True)
     assigned_staff = models.ForeignKey('StaffUser',on_delete=models.SET_NULL,blank=True,null=True,related_name="assigned_staff")
