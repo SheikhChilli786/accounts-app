@@ -963,6 +963,7 @@ def save_product(request):
                 try:
                     with transaction.atomic():
                         product.name = name
+                        product.quantity = quantity
                         product.save()
                         resp['msg'] = "product was updated successfully"
                 except:

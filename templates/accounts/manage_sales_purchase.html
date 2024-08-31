@@ -674,6 +674,7 @@ $(document).ready(function () {
         // Add transaction to the list
         $('#transactionForm').submit(function (e) {
             let id = $('#id').val();
+            console.log(id)
             let user_id = {{user_id}}
             let date = $("#date").val();
             let name = $('#name').val();
@@ -749,6 +750,7 @@ $(document).ready(function () {
                             $('#id').val("")
                             $('#submit').val("")
                             $('#charges').val('')
+                            $('#bill').val('')
                             itemList = []
                             displayItemList()
                             $('#name').focus();
@@ -841,7 +843,7 @@ $(document).ready(function () {
 
                             // Populate the transaction list with the fetched data
                             var transactionHtml = '<table class="display cell-border" style="width:100%" id="transaction-tbl">';
-                            transactionHtml += '<thead><tr><th>#</th><th>bill#</th><th>Date</th><th>Name</th><th>Description</th><th>Amount</th><th>Discount</th><th>Action</th></tr></thead>';
+                            transactionHtml += '<thead><tr><th>bill#</th><th>Date</th><th>#</th><th>Name</th><th>Description</th><th>Amount</th><th>Discount</th><th>Action</th></tr></thead>';
                             transactionHtml += '<tbody>';
                             
                             $.each(data.transaction_data, function (index, transaction) {
@@ -853,6 +855,7 @@ $(document).ready(function () {
 
                                 transactionHtml += '<td> N/A </td>';
                                 }
+                                console.log(index+1)
                                 transactionHtml += '<td>'  +transaction.date+ '</td>';
                                 transactionHtml += '<td>' + (index+1) + '</td>';
                                 transactionHtml += '<td>'  +transaction.party+ '</td>';
