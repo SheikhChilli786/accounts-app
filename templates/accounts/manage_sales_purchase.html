@@ -457,7 +457,7 @@ $(document).ready(function () {
 
         // Validate if all necessary fields are filled
         if (productName && quantity && price) {
-            if(quantity<0){
+            if(quantity<1){
                 el.text("Please enter quantity greater then 0");
                 $('.warning').prepend(el)
                 el.show('slow')
@@ -663,7 +663,6 @@ $(document).ready(function () {
         // Add transaction to the list
         $('#transactionForm').submit(function (e) {
             let id = $('#id').val();
-            console.log(id)
             let user_id = {{user_id}}
             let date = $("#date").val();
             let name = $('#name').val();

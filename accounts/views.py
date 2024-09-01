@@ -634,7 +634,6 @@ def save_trade(request):
             return JsonResponse(resp)
         
            
-
         if id:
             try:
                 trade = Transaction.objects.filter(id=id)
@@ -669,6 +668,8 @@ def save_trade(request):
                     return JsonResponse(resp)
             if (state == 'off' and trade[0].is_sales == False) and (request.user.is_superuser or user == request.user  or  (user.assigned_staff.user if hasattr(user.assigned_staff, 'user') else None==request.user and request.user.has_perm('accounts.can_change_purchase'))):
                 state_off = True
+                if bill == None:
+                    bill =0
                 try:
                     with transaction.atomic():
                         prev_items = TradeItem.objects.filter(trade=trade[0])
@@ -678,7 +679,7 @@ def save_trade(request):
                         for item in items:
                                 product = products.filter(name=item['productName'])
                                 product.update(quantity=F('quantity')+item['quantity'])
-                        trade.update(party=party,description=description,debit=(total if validate_total() else calc_total),form=form_obj,discount=discount,is_sales=False,charges=charges)
+                        trade.update(party=party,description=description,debit=(total if validate_total() else calc_total),form=form_obj,discount=discount,is_sales=False,charges=charges,bill=bill)
                         trade_items = [
                             TradeItem(
                                 trade=trade[0],
@@ -699,15 +700,16 @@ def save_trade(request):
                 resp['msg'] = "You dont have authorization to update purchase"
                 return JsonResponse(resp)
         else:
-            if bill == None:
-                bill = 0
-                if state == 'on':
+            if state == 'on':
+                    bill = 0
                     sales = Transaction.objects.select_related('party__user').filter(delete_flag=0, party__delete_flag=0, party__user=user, is_sales=True)
                     bill = sales.aggregate(Max('bill_number'))['bill_number__max']
                     if bill:
                         bill = bill + 1
                     else:
                         bill =1
+            if bill == None:
+                bill = 0
             if state == "on" and (request.user.is_superuser or user == request.user or  (user.assigned_staff.user if hasattr(user.assigned_staff, 'user') else None)==request.user and request.user.has_perm('accounts.can_add_sale')) :
                 state_on = True
                 try:
