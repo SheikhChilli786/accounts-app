@@ -104,7 +104,8 @@ class Transaction(models.Model):
         running_balance = prior_debit - prior_credit
         return running_balance + self.debit - self.credit
     
-
+    def __str__(self) -> str:
+        return f"{self.party}-{self.description}-{self.form.created_at} Sale:{self.is_sales}"
 
 class TradeItem(models.Model):
 
