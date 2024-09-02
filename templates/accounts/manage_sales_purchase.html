@@ -843,7 +843,6 @@ $(document).ready(function () {
 
                                 transactionHtml += '<td> N/A </td>';
                                 }
-                                console.log(index+1)
                                 transactionHtml += '<td>'  +transaction.date+ '</td>';
                                 transactionHtml += '<td>' + (index+1) + '</td>';
                                 transactionHtml += '<td>'  +transaction.party+ '</td>';
@@ -1000,7 +999,6 @@ $(document).ready(function () {
             var formData = new FormData();
             formData.append('user',$('#transactionForm input[name="user_id"]').val())
             formData.append('name',$('#transactionForm input[name="name"]').val())
-            console.log(typeof(formData),formData)
             start_loader()
             $.ajax({
                 headers: {
