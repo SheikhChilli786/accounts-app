@@ -215,12 +215,12 @@ def manage_transaction(request, pk=None):
             except:
                 resp['msg'] = "Transaction Couldn't be Found. Please Try again after refreshing"
             context['user_id'] = user.id
-            resp['party']= transaction.party.name,
-            resp['description']= transaction.description,
-            resp['user']= transaction.party.user.username,
-            resp['debit']= transaction.debit,
-            resp['credit']= transaction.credit,
-            resp['date']= transaction.form.created_at,
+            resp['party']= transaction.party.name
+            resp['description']= transaction.description
+            resp['user']= transaction.party.user.username
+            resp['debit']= transaction.debit
+            resp['credit']= transaction.credit
+            resp['date']= transaction.form.created_at
             resp['id']=transaction.pk
             resp['status'] = 'success'
             return JsonResponse(resp)
@@ -533,7 +533,8 @@ def manage_sales_purchases(request,pk=None):
                 'discount':transaction.discount,
                 'id': transaction.pk,
                 'items': transaction_items_list,
-                'charges':transaction.charges
+                'charges':transaction.charges,
+                'palydar':transaction.pallydar
             }
 
             
@@ -563,7 +564,8 @@ def manage_sales_purchases(request,pk=None):
                         'discount':transaction.discount,
                         'id': transaction.pk,
                         'items': transaction_items_list,
-                        'charges':transaction.charges
+                        'charges':transaction.charges,
+                        'palydar':transaction.pallydar
                     }
 
         if transaction.is_sales == True and not sales_on:
@@ -595,6 +597,7 @@ def save_trade(request):
         discount = data.get('discount',0)
         charges = data.get('charges',0)
         items = data.get('items','')
+        palydar = data.get('palydar','')
         if charges == None:
             charges=0
         if discount == None:
@@ -652,7 +655,7 @@ def save_trade(request):
                         for item in items:
                                 product = products.filter(name=item['productName'])
                                 product.update(quantity=F('quantity')-item['quantity'])
-                        trade.update(party=party,description=description,credit=(total if validate_total() else calc_total),form=form_obj,discount=discount,is_sales=True,charges=charges)
+                        trade.update(party=party,description=description,credit=(total if validate_total() else calc_total),form=form_obj,discount=discount,is_sales=True,charges=charges,pallydar=palydar)
                         trade_items = [
                             TradeItem(
                                 trade=trade[0],
@@ -679,7 +682,7 @@ def save_trade(request):
                         for item in items:
                                 product = products.filter(name=item['productName'])
                                 product.update(quantity=F('quantity')+item['quantity'])
-                        trade.update(party=party,description=description,debit=(total if validate_total() else calc_total),form=form_obj,discount=discount,is_sales=False,charges=charges,bill=bill)
+                        trade.update(party=party,description=description,debit=(total if validate_total() else calc_total),form=form_obj,discount=discount,is_sales=False,charges=charges,bill=bill,pallydar=palydar)
                         trade_items = [
                             TradeItem(
                                 trade=trade[0],
@@ -734,7 +737,8 @@ def save_trade(request):
                             form=form_obj,
                             discount=discount,
                             charges=charges,
-                            is_sales=True
+                            is_sales=True,
+                            pallydar=palydar
                         )
                         trade_items = [
                             TradeItem(
@@ -755,7 +759,7 @@ def save_trade(request):
                 state_off = True
                 try:
                     with transaction .atomic():
-                        trade = Transaction.objects.create(bill_number=bill,party=party,description=description,debit=(total if validate_total() else calc_total),form=form_obj,discount=discount,is_sales=False,charges=charges)
+                        trade = Transaction.objects.create(bill_number=bill,party=party,description=description,debit=(total if validate_total() else calc_total),form=form_obj,discount=discount,is_sales=False,charges=charges,pallydar=palydar)
                         trade_items = [
                             TradeItem(
                                 trade=trade,

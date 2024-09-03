@@ -134,6 +134,14 @@
             background-color: transparent; 
             cursor: pointer; 
         } 
+.discount-inputs input[type="number"] {
+    width: 48%; /* Adjusted width to fit within col-4 */
+    margin-right: 4%; /* Small right margin for spacing */
+}
+.discount-inputs span {
+    margin: 0 2%; /* Adjust spacing between elements */
+}
+
 </style>
 <body>
 <div class="container-fluid">
@@ -225,21 +233,24 @@
             </tbody>
             </table>
     </div>
-    <div class="form-group row"> 
-        <div class="col-6">
-            <label for="discount_percent">Discount:</label>
-            <div class="discount-inputs">
-                <input type="number" id="discount_percent" class="form-control" value="" step="0.0001" placeholder="%" min="0" max="100" style="width: 50%;">
-                <span style="margin:0px;">=</span>
-                <input type="number" id="discount_amount" class="form-control" value="" step="0.0001" min="0" placeholder="Rs." style="width: 50%;" >
-            </div>
+<div class="form-group row"> 
+    <div class="col-4"> <!-- Changed col-6 to col-4 -->
+        <label for="discount_percent">Discount:</label>
+        <div class="discount-inputs">
+            <input type="number" id="discount_percent" class="form-control" value="" step="0.0001" placeholder="%" min="0" max="100">
+            <span>=</span>
+            <input type="number" id="discount_amount" class="form-control" value="" step="0.0001" min="0" placeholder="Rs.">
         </div>
-        <div class="col-6">
-            <label for="charges">Charges:</label>
-                <input type="number" id="charges" class="form-control" value="" step="0.0001" placeholder="Surplus Charges" min="0"  style="width: 100%;">
-        </div>
-    
     </div>
+    <div class="col-4"> <!-- Changed col-6 to col-4 -->
+        <label for="charges">Charges:</label>
+        <input type="number" id="charges" class="form-control" value="" step="0.0001" placeholder="Surplus Charges" min="0">
+    </div>
+    <div class="col-4"> <!-- Added this new column -->
+        <label for="new_field">Palydar:</label>
+        <input type="text" id="palydar" class="form-control" placeholder="Enter value">
+    </div>
+</div>
     <div class="flex-container">
     <div class="col-2">
     <button type="submit" style = "width:100%; margin-top:20px; " class="btn btn-secondary" id="addTransaction">Save</button>
@@ -666,6 +677,7 @@ $(document).ready(function () {
             let user_id = {{user_id}}
             let date = $("#date").val();
             let name = $('#name').val();
+            let palydar = $('#palydar').val()
             let description = $('#description').val();
             let radioValue = $("input[id='btnsales']:checked").val();
             let discount = $("#discount_amount").val()
@@ -715,7 +727,8 @@ $(document).ready(function () {
                         "total": parseInt(total),
                         "discount": parseInt(discount),
                         "charges":parseInt(charges),
-                        'items': itemList
+                        'items': itemList,
+                        'palydar':palydar,
                     }),
                     cache: false,
                     contentType: false,
@@ -741,6 +754,7 @@ $(document).ready(function () {
                             $('#bill').val('')
                             itemList = []
                             displayItemList()
+                            $('#palydar').val('')
                             $('#name').focus();
                         } else {
                             el.text(resp.msg);
@@ -925,6 +939,7 @@ $(document).ready(function () {
                                             $('#discount_amount').val(resp.transaction.discount);
                                             $('#bill').val(resp.transaction.bill_number)
                                             $('#charges').val(resp.transaction.charges)
+                                            $('#palydar').val(resp.transaction.palydar)
                                             itemList = []
                                             itemList = resp.transaction.items
                                             
