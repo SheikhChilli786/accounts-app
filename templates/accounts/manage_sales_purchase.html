@@ -1,26 +1,28 @@
 {% load static %}
 <style>
     .btn-custom {
-            background-color: #6C757D;
-            color: #ffffff; /* Text color */
-            border: none;
-            border-radius: 4px;
-            padding: 8px;
-            transition: background-color 0.3s ease;
-            
-        }
+        background-color: #6C757D;
+        color: #ffffff;
+        /* Text color */
+        border: none;
+        border-radius: 4px;
+        padding: 8px;
+        transition: background-color 0.3s ease;
 
-        .btn-custom:focus {
-            background-color: #2B2F33; /* Darken background color on hover */
-            color: #ffffff
-        }
+    }
 
-        /* Adjust icon color */
-        
+    .btn-custom:focus {
+        background-color: #2B2F33;
+        /* Darken background color on hover */
+        color: #ffffff
+    }
+
+    /* Adjust icon color */
+
     body {
         background-color: #f8f9fa;
     }
-    
+
     .container-fluid {
         margin-top: 30px;
     }
@@ -49,7 +51,8 @@
         border: 1px solid #ced4da;
         border-radius: 4px;
         box-sizing: border-box;
-        margin-bottom: 10px; /* Improved spacing between input elements */
+        margin-bottom: 10px;
+        /* Improved spacing between input elements */
     }
 
     button {
@@ -66,7 +69,8 @@
         margin-top: 10px;
         border: 1px solid #ced4da;
         border-radius: 4px;
-        padding: 15px; /* Improved padding for better readability */
+        padding: 15px;
+        /* Improved padding for better readability */
     }
 
     .list-group-item h5 {
@@ -81,185 +85,201 @@
         margin-top: 10px;
     }
 
-    .btn-primary{
+    .btn-primary {
         margin-right: 10px;
-        
+
     }
+
     .btn-danger {
         margin-right: 10px;
     }
 
     .text-danger {
         color: #dc3545;
-        margin-top: 5px; /* Improved spacing for better readability */
+        margin-top: 5px;
+        /* Improved spacing for better readability */
     }
+
     .flex-container {
-    display: flex; /* Use flexbox */
-    justify-content: space-between; /* Space items evenly inside container */
-    align-items: center; /* Center items vertically */
-    /* Optional: Adjust width and height as needed */
-    width: 100%;
-    height: 100%;
+        display: flex;
+        /* Use flexbox */
+        justify-content: space-between;
+        /* Space items evenly inside container */
+        align-items: center;
+        /* Center items vertically */
+        /* Optional: Adjust width and height as needed */
+        width: 100%;
+        height: 100%;
     }
-    
+
     .discount-inputs {
         display: flex;
         align-items: center;
     }
 
     .discount-inputs span {
-        margin: 0 8px; /* Adjust spacing between elements */
+        margin: 0 8px;
+        /* Adjust spacing between elements */
     }
 
     label {
         margin-bottom: 5px;
         display: block;
     }
-     .input-wrapper { 
-            position: relative; 
-            display: inline-block; 
-            width:100%;
-        } 
-  
-        .input-wrapper input { 
-            padding-right: 20px; 
-        } 
-  
-        .input-wrapper button { 
-            position: absolute; 
-            top: 0; 
-            right: 0; 
-            border: none; 
-            padding-top:10px;
-            background-color: transparent; 
-            cursor: pointer; 
-        } 
-.discount-inputs input[type="number"] {
-    width: 48%; /* Adjusted width to fit within col-4 */
-    margin-right: 4%; /* Small right margin for spacing */
-}
-.discount-inputs span {
-    margin: 0 2%; /* Adjust spacing between elements */
-}
 
+    .input-wrapper {
+        position: relative;
+        display: inline-block;
+        width: 100%;
+    }
+
+    .input-wrapper input {
+        padding-right: 20px;
+    }
+
+    .input-wrapper button {
+        position: absolute;
+        top: 0;
+        right: 0;
+        border: none;
+        padding-top: 10px;
+        background-color: transparent;
+        cursor: pointer;
+    }
+
+    .discount-inputs input[type="number"] {
+        width: 48%;
+        /* Adjusted width to fit within col-4 */
+        margin-right: 4%;
+        /* Small right margin for spacing */
+    }
+
+    .discount-inputs span {
+        margin: 0 2%;
+        /* Adjust spacing between elements */
+    }
 </style>
-<body>
 <div class="container-fluid">
 
     <form id="transactionForm">
-    {% csrf_token %}
-    <div class="btn-group" role="group" aria-label="Basic radio toggle button group">
-    <input type="radio" class="btn-check" name="btnradio" id="btnsales" autocomplete="off" checked>
-    <label class="btn btn-outline-secondary" for="btnsales">Sales</label>
+        {% csrf_token %}
+        <div class="btn-group" role="group" aria-label="Basic radio toggle button group">
+            <input type="radio" class="btn-check" name="btnradio" id="btnsales" autocomplete="off" checked>
+            <label class="btn btn-outline-secondary" for="btnsales">Sales</label>
 
-    <input type="radio" class="btn-check" name="btnradio" id="btnpurchases" autocomplete="off">
-    <label class="btn btn-outline-secondary" for="btnpurchases">Purchases</label>
+            <input type="radio" class="btn-check" name="btnradio" id="btnpurchases" autocomplete="off">
+            <label class="btn btn-outline-secondary" for="btnpurchases">Purchases</label>
 
-    </div>
-    <div class="form-group row">
+        </div>
+        <div class="form-group row">
             <input type="hidden" name='user_id' value="{{user_id}}"></input>
             <input type="hidden" id="id" name='id' value=""></input>
-        <div class="col">
-            <label for="quantity">Bill#:</label>
-            <input type="number" name="bill" class="form-control" id="bill" value="" min="0" step="1" default="0" >
-        </div>
+            <div class="col">
+                <label for="quantity">Bill#:</label>
+                <input type="number" name="bill" class="form-control" id="bill" value="" min="0" step="1" default="0">
+            </div>
 
-        <div class="col">
-            <label for="date">Date:</label>
-            <input type="date" name='date'  class="form-control" value="" id="date" required>
-        </div>
-        <div class="col-sm-6">
-            <label for="party" class="control-label">Party:</label>
-            <div class="input-wrapper"> 
-            <input type="text" id="name" value="" name="name" list="partyList" class="form-control" required>
-            <datalist id="partyList">
-                {% for party in parties %}
-                <option value="{{party.name}}">
-                {% endfor %}
-            </datalist>
-                <button type="button" class="party-btn"><strong> &#43</strong> </button> 
+            <div class="col">
+                <label for="date">Date:</label>
+                <input type="date" name='date' class="form-control" value="" id="date" required>
+            </div>
+            <div class="col-sm-6">
+                <label for="party" class="control-label">Party:</label>
+                <div class="input-wrapper">
+                    <input type="text" id="name" value="" name="name" list="partyList" class="form-control" required>
+                    <datalist id="partyList">
+                        {% for party in parties %}
+                        <option value="{{party.name}}">
+                            {% endfor %}
+                    </datalist>
+                    <button type="button" class="party-btn"><strong> &#43</strong> </button>
+                </div>
             </div>
         </div>
-    </div>
-    <div class="form-group">
-        <label for="description">Description:</label>
-        <textarea class="form-control" name="description" id="description" rows="2" ></textarea>
-    </div>
-    <div class="form-group row add-item">
-        <div class="warning"></div>
-        <div class="col-sm-5">
-        
-            <label for="product" class="control-label">Product:</label>
-            <div class="input-wrapper"> 
-                <input type="text" class = "form-control"  name="product" id="product" list="productList"> 
-                <datalist id="productList">
-                    {% for product in products %}
-                    <option value="{{product.name}}"></option>
-                    {% endfor %}
-                </datalist>
-                <button type="button" class="product-btn"><strong> &#43</strong> </button> 
-            </div> 
+        <div class="form-group">
+            <label for="description">Description:</label>
+            <textarea class="form-control" name="description" id="description" rows="2"></textarea>
         </div>
-       
-        <div class="col">
-            <label for="quantity">Quantity:</label>
-            <input type="number" name="quantity" class="form-control" id="quantity" value="" min="1" step="1" default="0" >
+        <div class="form-group row add-item">
+            <div class="warning"></div>
+            <div class="col-sm-5">
+
+                <label for="product" class="control-label">Product:</label>
+                <div class="input-wrapper">
+                    <input type="text" class="form-control" name="product" id="product" list="productList">
+                    <datalist id="productList">
+                        {% for product in products %}
+                        <option value="{{product.name}}"></option>
+                        {% endfor %}
+                    </datalist>
+                    <button type="button" class="product-btn"><strong> &#43</strong> </button>
+                </div>
+            </div>
+
+            <div class="col">
+                <label for="quantity">Quantity:</label>
+                <input type="number" name="quantity" class="form-control" id="quantity" value="" min="1" step="1"
+                    default="0">
+            </div>
+            <div class="col">
+                <label for="price">Price:</label>
+                <input type="number" name="price" class="form-control" id="price" value="" min="1" step="1" default="0">
+            </div>
+            <div class="col-2">
+                <label>&nbsp;</label>
+                <button type="button" class="btn btn-custom" id="addPrice">
+                    <i class="fas fa-plus"></i>
+                </button>
+            </div>
         </div>
-        <div class="col">
-            <label for="price">Price:</label>
-            <input type="number" name="price" class="form-control" id="price" value="" min="1" step="1" default="0" >
-        </div>
-        <div class="col-2">
-            <label>&nbsp;</label>
-            <button type="button" class="btn btn-custom" id="addPrice">
-                <i class="fas fa-plus"></i>
-            </button>
-        </div>
-    </div>
-    <div class="form-group">
+        <div class="form-group">
             <table class="display cell-border" id="itemTable" style="width:100%">
-            <thead>
-                <tr>
-                    <th>Sr #</th>
-                    <th>Product</th>
-                    <th>Quantity</th>
-                    <th>Price</th>
-                    <th>Total</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-            <tbody>
-                <!-- Item rows will be dynamically added here -->
-            </tbody>
+                <thead>
+                    <tr>
+                        <th>Sr #</th>
+                        <th>Product</th>
+                        <th>Quantity</th>
+                        <th>Price</th>
+                        <th>Total</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Item rows will be dynamically added here -->
+                </tbody>
             </table>
-    </div>
-<div class="form-group row"> 
-    <div class="col-4"> <!-- Changed col-6 to col-4 -->
-        <label for="discount_percent">Discount:</label>
-        <div class="discount-inputs">
-            <input type="number" id="discount_percent" class="form-control" value="" step="0.0001" placeholder="%" min="0" max="100">
-            <span>=</span>
-            <input type="number" id="discount_amount" class="form-control" value="" step="0.0001" min="0" placeholder="Rs.">
         </div>
-    </div>
-    <div class="col-4"> <!-- Changed col-6 to col-4 -->
-        <label for="charges">Charges:</label>
-        <input type="number" id="charges" class="form-control" value="" step="0.0001" placeholder="Surplus Charges" min="0">
-    </div>
-    <div class="col-4"> <!-- Added this new column -->
-        <label for="new_field">Palydar:</label>
-        <input type="text" id="palydar" class="form-control" placeholder="Enter value">
-    </div>
-</div>
-    <div class="flex-container">
-    <div class="col-2">
-    <button type="submit" style = "width:100%; margin-top:20px; " class="btn btn-secondary" id="addTransaction">Save</button>
-    </div>
-    <div class="col-3">
-        <label for="total">Total:</label>
-        <input type="number" class="form-control" id="total" value="" readonly>
-    </div>
-</div>
+        <div class="form-group row">
+            <div class="col-4"> <!-- Changed col-6 to col-4 -->
+                <label for="discount_percent">Discount:</label>
+                <div class="discount-inputs">
+                    <input type="number" id="discount_percent" class="form-control" value="" step="0.0001"
+                        placeholder="%" min="0" max="100">
+                    <span>=</span>
+                    <input type="number" id="discount_amount" class="form-control" value="" step="0.0001" min="0"
+                        placeholder="Rs.">
+                </div>
+            </div>
+            <div class="col-4"> <!-- Changed col-6 to col-4 -->
+                <label for="charges">Charges:</label>
+                <input type="number" id="charges" class="form-control" value="" step="0.0001"
+                    placeholder="Surplus Charges" min="0">
+            </div>
+            <div class="col-4"> <!-- Added this new column -->
+                <label for="new_field">Palydar:</label>
+                <input type="text" id="palydar" class="form-control" placeholder="Enter value">
+            </div>
+        </div>
+        <div class="flex-container">
+            <div class="col-2">
+                <button type="submit" style="width:100%; margin-top:20px; " class="btn btn-secondary"
+                    id="addTransaction">Save</button>
+            </div>
+            <div class="col-3">
+                <label for="total">Total:</label>
+                <input type="number" class="form-control" id="total" value="" readonly>
+            </div>
+        </div>
     </form>
 </div>
 <div class="container-fluid">
@@ -267,7 +287,7 @@
     <button type="button" class="btn btn-secondary" id="toggleTransactions">
         View Recent Transactions
     </button>
-        <select id="transactionLimit" class="btn btn-secondary">
+    <select id="transactionLimit" class="btn btn-secondary">
         <option value="100">100</option>
         <option value="500">500</option>
         <option value="-1">All</option>
@@ -275,322 +295,152 @@
 
     <div id="transactionListContainer">
         <div id="transactionList">
-            
+
         </div>
     </div>
 </div>
 
 </body>
 <script>
-$(document).ready(function () {
-let final_amount = 0;
-const $radioButtons = $("input[type='radio'][name='btnradio']");
-const $bill = $("#bill");
-const $name = $('#name');
-const $description = $('#description');
-const $id = $('#id');
-const $submit = $('#submit');
-const $charges = $('#charges');
-const $addPrice = $('#addPrice');
-const $discountAmount = $('#discount_amount');
-const $price = $('#price');
-const $quantity = $('#quantity');
-const $product = $('#product');
-const $discountPercent = $('#discount_percent');
-const $total = $('#total');
-const $date = $('#date');
-
-$('#transactionLimit').on('change', initializeDataTable);
-
-function button_sales_purchase() {
-    const radioValue = $("input[id='btnsales']:checked").val();
-    if (radioValue === "on") {
-        $bill.prop("disabled", true).val('');
-        $name.val('');
-        $description.val('');
-        $id.val("");
-        $submit.val("");
-        $charges.val('');
-    } else {
-        $bill.prop("disabled", false).val('');
-        $name.val('');
-        $description.val('');
-        $id.val("");
-        $submit.val("");
-        $charges.val('');
-        itemList = [];
-        displayItemList();
-    }
-    initializeDataTable();
-}
-
-$("input[type='text'], input[type='number']").on("focus", function() {
-    $(this).select();
-});
-
-$radioButtons.on('change', button_sales_purchase);
-
-// Initialize button state
-$().button('toggle');
-
-let itemList = [];
-
-function handleKeyDown(e, selector, keyCodes, focusElement, preventDefault = false, clickElement = null) {
-    if (keyCodes.includes(e.which)) {
-        if (preventDefault) e.preventDefault();
-        $(focusElement).focus();
-        if (clickElement) $(clickElement).click();
-    }
-}
-
-$addPrice.on('keydown', function(e) {
-    handleKeyDown(e, this, [9], '#addTransaction');
-});
-
-$discountAmount.on('keydown', function(e) {
-    handleKeyDown(e, this, [9], '#addPrice');
-});
-
-$price.on('keydown', function(e) {
-    handleKeyDown(e, this, [37], '#quantity');
-    handleKeyDown(e, this, [13], null, true, '#addPrice');
-});
-
-$quantity.on('keydown', function(e) {
-    handleKeyDown(e, this, [37], '#product');
-    handleKeyDown(e, this, [39], '#price');
-    handleKeyDown(e, this, [13], null, true, '#price');
-});
-
-$description.on('keydown', function(e) {
-    handleKeyDown(e, this, [38], '#name');
-});
-
-$product.on('keydown', function(e) {
-    handleKeyDown(e, this, [37], '#description');
-    handleKeyDown(e, this, [39], '#quantity');
-    handleKeyDown(e, this, [13], '#quantity', true);
-});
-
-$name.on('keydown', function(e) {
-    handleKeyDown(e, this, [37], '#date');
-    handleKeyDown(e, this, [39], '#description');
-    handleKeyDown(e, this, [13], '#description', true);
-});
-
-$charges.on('input', function() {
-    let chargesValue = parseFloat($(this).val()) || 0;
-    if (chargesValue < 0) {
-        $(this).val(0);
-        chargesValue = 0;
-    }
-    $total.val(parseFloat(final_amount + chargesValue - parseFloat($discountAmount.val() || 0)));
-});
-
-$discountPercent.on('input', function() {
-    let discountValue = parseFloat($(this).val()) || 0;
-    if (discountValue > 100) {
-        $(this).val(100);
-        discountValue = 100;
-    } else if (discountValue < 0) {
-        $(this).val(0);
-        discountValue = 0;
-    }
-    const discountAmount = (final_amount / 100) * discountValue;
-    $discountAmount.val(discountAmount.toFixed(4));
-    $total.val((final_amount - discountAmount).toFixed(4));
-});
-
-$discountAmount.on('input', function() {
-    let discountValue = parseFloat($(this).val()) || 0;
-    if (discountValue > final_amount) {
-        $(this).val(final_amount);
-        discountValue = final_amount;
-    } else if (discountValue < 0 || final_amount === 0) {
-        $(this).val(0);
-        discountValue = 0;
-    }
-    $discountPercent.val(((discountValue / final_amount) * 100).toFixed(4));
-    $total.val((final_amount - discountValue + parseFloat($charges.val()) || 0).toFixed(4));
-});
-
-$addPrice.click(function () {
-    const el = $('<div>').addClass("alert alert-danger err-msg").hide();
-    const productName = $product.val().trim();
-    const quantity = parseInt($quantity.val().trim());
-    const price = parseFloat($price.val().trim());
-    let productExists = false;
-
-    if (productName && quantity && price >= 0) {
-        if (quantity < 1) {
-            showWarning(el, "Please enter quantity greater than 0", $product);
-            return;
-        }
-
-        $('#productList option').each(function () {
-            if ($(this).val().toLowerCase() === productName.toLowerCase()) {
-                productExists = true;
-                return false;
-            }
-        });
-
-        if (!productExists) {
-            showWarning(el, "Product not found in the list.", $product);
-            return;
-        }
-
-        if (price < 0) {
-            showWarning(el, "Please enter price greater than 0", $product);
-            return;
-        }
-
-        const existingItemIndex = itemList.findIndex(item => 
-            item.productName.toLowerCase() === productName.toLowerCase() && item.price === price
-        );
-
-        if (existingItemIndex !== -1) {
-            itemList[existingItemIndex].quantity += quantity;
-            itemList[existingItemIndex].total += quantity * price;
-        } else {
-            itemList.unshift({ productName, quantity, price, total: quantity * price });
-        }
-
-        $product.val('');
-        $quantity.val('');
-        $price.val('');
-        displayItemList();
-        $product.focus();
-    } else {
-        showWarning(el, "Please enter a valid record", $product);
-        $('.add-item input').filter(function () {
-            return $(this).val().trim() === "";
-        }).first().focus();
-    }
-});
-
-function showWarning(el, message, focusElement) {
-    el.text(message);
-    $('.warning').prepend(el);
-    el.show('slow');
-    focusElement.focus();
-    setTimeout(() => el.hide('slow'), 2000);
-}
-
-function displayItemList() {
-    $('#itemTable tbody').empty();
-    const table = $('#itemTable').DataTable();
-    table.clear();
-    let total = 0;
-
-    itemList.forEach((item, index) => {
-        table.row.add([
-            table.rows().count() + 1,
-            item.productName,
-            item.quantity,
-            item.price,
-            item.total,
-            `<div class="dropdown">
-                <button class="btn btn-light btn-sm rounded-0 border dropdown-toggle" type="button" id="abtn" data-bs-toggle="dropdown" aria-expanded="false">  Action </button>
-                <ul class="dropdown-menu" aria-labelledby="abtn">
-                    <li><a class="dropdown-item edit-item" href="javascript:void(0)" data-index="${index}"><i class="fa fa-pencil text-dark"></i>Edit</a></li>
-                    <li><a class="dropdown-item delete-item" href="javascript:void(0)" data-index="${index}"><i class="fa fa-trash text-danger"></i> Delete</a></li>
-                </ul>
-            </div>`
-        ]).draw(false);
-
-        total += item.total;
-    });
-
-    final_amount = total;
-    $total.val(final_amount);
-    $discountAmount.trigger('input');
-    $charges.trigger('input');
-
-    $('.edit-item').on('pointerdown', function () {
-        const index = $(this).data('index');
-        const item = itemList.splice(index, 1)[0];
-        $product.val(item.productName);
-        $quantity.val(item.quantity);
-        $price.val(item.price);
-        displayItemList();
-    });
-
-    $('.delete-item').on('pointerdown', function () {
-        const index = $(this).data('index');
-        itemList.splice(index, 1);
-        displayItemList();
-    });
-}
-
-$('#toggleTransactions').click(function () {
-        var container = $('#transactionListContainer');
-        var isVisible = container.is(':visible');
-        container.slideToggle('slow', function () {
-            $('#toggleTransactions').text(isVisible ? 'View Recent Transactions' : 'Hide Transactions');
-        });
-    });
-        
+    $(document).ready(function () {
+        var itemList = [];
+        var discount = 0;
+        var itemTable;
+        var trasactionTable;
+        const $radioButtons = $("input[type='radio'][name='btnradio']");
+        const $bill = $("#bill");
+        const $name = $('#name');
+        const $description = $('#description');
+        const $id = $('#id');
+        const $charges = $('#charges');
+        const $addPrice = $('#addPrice');
+        const $discountAmount = $('#discount_amount');
+        const $price = $('#price');
+        const $quantity = $('#quantity');
+        const $product = $('#product');
+        const $discountPercent = $('#discount_percent');
+        const $total = $('#total');
+        const $date = $('#date');
         $('#myModal').off('shown.bs.modal').on('shown.bs.modal', function () {
-            button_sales_purchase()
-            $('#itemTable').DataTable({
-                searching:false,
-                paging:false,
-                responsive: {
-                    details: {
-                        type: 'column',
-                        target: 'tr'
-                    }
-                },
-                columnDefs: [
-                    {
-                        orderable: false,
-                        targets: [1,2,3,4,5]
-                    },
-                    { "width": "80px", "targets": 5 },
-
-                    { responsivePriority: 1, targets: 1 },
-                    { responsivePriority: 2, targets: -1 },
-                    { responsivePriority: 3, targets: 4 },
-                ],
-            })
-            
-            $("#name").focus();
-        });
-        
-        $('#date').on('input', function () {
-            initializeDataTable()
+            initializeItemTable();
+            initializeToggleForm()
+            initializeTransactionTable();
+            $name.focus();
         })
-
-
-        $('#debit').on('input', function () {
-            var debitValue = $(this).val();
-            $('#credit').prop('disabled', debitValue > 0);
-            clearError('#debit');
+        $("input[type='text'], input[type='number']").on("focus", function () {
+            $(this).select();
         });
-
-        $('#credit').on('input', function () {
-            var creditValue = $(this).val();
-            $('#debit').prop('disabled', creditValue > 0);
-            clearError('#credit');
+        $charges.on('input',function(){
+            if($(this).val()==''||$(this).val()<0){
+                $(this).val(0)
+            }
+            updateTotal();
+        })
+        $date.on('change',function(){
+            localStorage.setItem('date',(this).val())
+            initializeTransactionTable();
+        })
+        $discountAmount.on('input',function(){
+            if($(this).val()<0||$(this).val()==''){
+                $(this).val() = 0
+            }
+            $(this).addClass('active');
+            $discountPercent.removeClass('active');
+            updateTotal();
+        })
+        $discountPercent.on('input',function(){
+            let discount_percentage = parseFloat($(this).val()) || 0;
+            if(discount_percentage>100){
+                $(this).val(100);
+            }
+            if($(this).val()<0||$(this).val()==""){
+                $(this).val(0);
+            }
+            $(this).addClass('active');
+            $discountAmount.removeClass('active');
+            updateTotal();
+        })
+        $radioButtons.on('change', function () {
+            const selectedValue = $(this).attr('id'); // Get the ID of the selected radio button
+            localStorage.setItem('selectedRadio', selectedValue); // Save the selected radio button ID in local storage
+            initializeForm()
+            initializeTransactionTable();
         });
-        
-        // Add transaction to the list
-        $('#transactionForm').submit(function (e) {
-            let id = $('#id').val();
-            let user_id = {{user_id}}
-            let date = $("#date").val();
-            let name = $('#name').val();
+        $addPrice.click(function () {
+            const el = $('<div>').addClass("alert alert-danger err-msg").hide();
+            const productName = $product.val().trim();
+            const quantity = parseInt($quantity.val().trim());
+            const price = parseFloat($price.val().trim());
+            let productExists = false;
+            if (productName && quantity>=0 && price >= 0) {
+                if (quantity < 1) {
+                    showWarning(el, "Please enter quantity greater than 0", $product);
+                    return;
+                }
+                $('#productList option').each(function () {
+                    if ($(this).val().toLowerCase() === productName.toLowerCase()) {
+                        productExists = true;
+                        return false;
+                    }
+                });
+                if (!productExists) {
+                    showWarning(el, "Product not found in the list.", $product);
+                    return;
+                }
+                if (!productExists) {
+                    showWarning(el, "Product not found in the list.", $product);
+                    return;
+                }
+
+                if (price < 0) {
+                    showWarning(el, "Please enter price greater than 0", $product);
+                    return;
+                }
+                const existingItemIndex = itemList.findIndex(item =>
+                    item.productName.toLowerCase() === productName.toLowerCase() && item.price === price
+                );
+                if (existingItemIndex !== -1) {
+                    itemList[existingItemIndex].quantity += quantity;
+                    itemList[existingItemIndex].total += quantity * price;
+                } else {
+                    itemList.unshift({ productName, quantity, price, total: quantity * price });
+                }
+                $product.val('');
+                $quantity.val('');
+                $price.val('');
+                displayItemList(itemList);
+                $product.focus();
+            } else {
+                showWarning(el, "Please enter a valid record", $product);
+                $('.add-item input').filter(function () {
+                    return $(this).val().trim() === "";
+                }).first().focus();
+            }
+
+        })
+        $('#toggleTransactions').click(function () {
+            var container = $('#transactionListContainer');
+            var isVisible = container.is(':visible');
+            container.slideToggle('slow', function () {
+                $('#toggleTransactions').text(isVisible ? 'View Recent Transactions' : 'Hide Transactions');
+             });
+        });
+        $('#addTransaction').click(function (e) {
+            let id = $id.val();
+            let user_id = {{ user_id }}
+            let date = $date.val();
+            let name = $name.val();
             let palydar = $('#palydar').val()
-            let description = $('#description').val();
+            let description = $description.val();
             let radioValue = $("input[id='btnsales']:checked").val();
-            let discount = $("#discount_amount").val()
-            let total  = $("#total").val()
-            let bill_number = $('#bill').val()
-           let charges = $('#charges').val()
+            let discount = $discountAmount.val()
+            let total = $total.val()
+            let bill_number = $bill.val()
+            let charges = $charges.val()
 
-            
+
             e.preventDefault()
-            
+
             var _this = $(this)
             $('.err-msg').remove();
             var el = $('<div>')
@@ -600,38 +450,38 @@ $('#toggleTransactions').click(function () {
                 _this[0].reportValidity();
                 return false;
             }
-            if(itemList.length == 0){
+            if (itemList.length == 0) {
                 el.text("Please add least one record to save transaction");
                 $('.warning').prepend(el)
                 el.show('slow')
                 $('#product').focus();
-                setTimeout(function(){
+                setTimeout(function () {
                     el.hide('slow')
 
-                },2000)      
-                    return;
+                }, 2000)
+                return;
             }
             if (name.trim() !== "" && itemList.length !== 0) {
                 // Check if either debit or credit has a value greater than 0
-                    start_loader();
+                start_loader();
                 $.ajax({
                     headers: {
                         "X-CSRFToken": '{{csrf_token}}'
                     },
                     url: "{% url 'accounts:save-trade' %}",
                     data: JSON.stringify({
-                        "bill_number":parseInt(bill_number),
+                        "bill_number": parseInt(bill_number),
                         "id": id,
-                        "user_id":user_id,
+                        "user_id": user_id,
                         "name": name,
-                        "date":date,
+                        "date": date,
                         "description": description,
                         "state": radioValue,
                         "total": parseInt(total),
                         "discount": parseInt(discount),
-                        "charges":parseInt(charges),
+                        "charges": parseInt(charges),
                         'items': itemList,
-                        'palydar':palydar,
+                        'palydar': palydar,
                     }),
                     cache: false,
                     contentType: false,
@@ -643,35 +493,26 @@ $('#toggleTransactions').click(function () {
                         alert("An error occured", 'error');
                         end_loader();
                     },
-                    success: function(resp) {
+                    success: function (resp) {
                         if (typeof resp === 'object' && resp.status === 'success') {
-                
-                            initializeDataTable()
+                            initializeForm()
+                            initializeTransactionTable()
                             end_loader();
-                            $('#name').val('')
-                            $('#description').val('')
-                            $('#id').val("")
-                            $('#submit').val("")
-                            $('#charges').val('')
-                            $('#bill').val('')
-                            itemList = []
-                            displayItemList()
-                            $('#palydar').val('')
-                            $('#name').focus();
+
                         } else {
                             el.text(resp.msg);
                             _this.prepend(el)
                             el.show('slow')
                             $("html, body, .modal").scrollTop(0);
                             end_loader();
-                            setTimeout(function(){
-                            el.hide('slow')
+                            setTimeout(function () {
+                                el.hide('slow')
 
-                            },2000)
+                            }, 2000)
                         }
                     }
                 })
-                    
+
             } else {
                 // Find the first empty field and move the cursor to it
                 var emptyField = $('#transactionForm input, #transactionForm textarea').filter(function () {
@@ -683,402 +524,305 @@ $('#toggleTransactions').click(function () {
 
                 // Give notice beneath the empty field
             }
-            
-             $('#date, #name, #description, #debit, #credit').prop('disabled', false);
 
-            
-            
+        $('#date, #name, #description, #debit, #credit').prop('disabled', false);
+
+
+
+    });
+
+
+    // ############## Functions ###########
+    
+        function updateTotal(){
+            let total = 0;
+            $.each(itemList,function(index,item){
+                total += item.total
+            })
+            total += parseInt($charges.val())
+            let percentage_is_active = $discountPercent.hasClass('active') 
+            let amount_is_active = $discountAmount.hasClass('active') 
+            if (amount_is_active){
+                let discount_percent = (parseInt($discountAmount.val())/total)*100 
+                if(discount_percent>= parseInt($discountAmount.val())){
+                    $discountPercent.val(100)
+                    total = 0
+                    
+                }else{
+                    total -= parseInt($discountAmount.val())
+                    $discountPercent.val(discount_percent.toFixed(2))
+                }
+            }else if(percentage_is_active){
+                let discount_amount = ((total/100)*parseFloat($discountPercent.val()))
+                if(parseFloat($discountPercent.val())>=100){
+                    total = 0
+                    $discountAmount.val(total)
+
+                }else{
+                    total -= parseInt(discount_amount)
+                    $discountAmount.val(discount_amount)
+
+                }
+            }
+            $total.val(total)
+        }
+        function initializeToggleForm() {
+            let selectedRadio = localStorage.getItem('selectedRadio') || 'btnsales'; // Default to 'btnsales' if nothing is stored
+            $('#' + selectedRadio).prop('checked', true); // Set the stored radio button as checked
+            initializeForm()
+        }
+        function showWarning(el, message, focusElement) {
+            el.text(message);
+            $('.warning').prepend(el);
+            el.show('slow');
+            focusElement.focus();
+            setTimeout(() => el.hide('slow'), 2000);
+        }
+
+    function displayItemList(items) {
+        var $itemTableBody = $('#itemTable tbody');
+        $itemTableBody.empty();
+        console.log(items);
+        itemTable.clear(); 
+        if (items && items.length > 0) {
+            items.forEach((item, index) => {
+                itemTable.row.add([
+                    index + 1,
+                    item.productName,
+                    item.quantity,
+                    item.price,
+                    item.total,
+                    `<div class="dropdown">
+                    <button class="btn btn-light btn-sm rounded-0 border dropdown-toggle" type="button" id="abtn" data-bs-toggle="dropdown" aria-expanded="false">Action</button>
+                    <ul class="dropdown-menu" aria-labelledby="abtn">
+                        <li><a class="dropdown-item edit-item" href="javascript:void(0)" data-index="${index}"><i class="fa fa-pencil text-dark"></i>Edit</a></li>
+                        <li><a class="dropdown-item delete-item" href="javascript:void(0)" data-index="${index}"><i class="fa fa-trash text-danger"></i>Delete</a></li>
+                    </ul>
+                </div>`
+                ]).draw(false);
+            });
+        }
+        updateTotal();
+        $('.edit-item').on('pointerdown', function () {
+            const index = $(this).data('index');
+            const item = itemList.splice(index, 1)[0];
+            $product.val(item.productName);
+            $quantity.val(item.quantity);
+            $price.val(item.price);
+            displayItemList(itemList);
         });
 
-        window.clearError = function (element) {
-            if (Array.isArray(element)) {
-                element.forEach(function (item) {
-                    item.removeClass('border border-danger');
-                    item.siblings('.text-danger').remove();
-                });
-            } else {
-                element.removeClass('border border-danger');
-                element.siblings('.text-danger').remove();
-            }
-        };
+        $('.delete-item').on('pointerdown', function () {
+            const index = $(this).data('index');
+            itemList.splice(index, 1);
+            displayItemList(itemList);
+        });
 
-        // Function to show an error for a given element
-        window.showError = function (element, message) {
-            element.addClass('border border-danger');
-            element.after('<div class="text-danger">' + message + '</div>');
-        };
+    }
 
-    
+    // Corrected jQuery event delegation for edit and delete actions
+        function initializeItemTable() {
+            itemTable = $('#itemTable').DataTable({
+                searching: false,
+                paging: false,
+                responsive: {
+                    details: {
+                        type: 'column',
+                        target: 'tr'
+                    }
+                },
+                columnDefs: [
+                    {
+                        orderable: false,
+                        targets: [1, 2, 3, 4, 5]
+                    },
+                    { "width": "80px", "targets": 5 },
 
-        // Function to clear error messages
-        function clearError(element) {
-            $(element).next('.text-danger').remove();
+                    { responsivePriority: 1, targets: 1 },
+                    { responsivePriority: 2, targets: -1 },
+                    { responsivePriority: 3, targets: 4 },
+                ],
+            })
         }
-        
-        function initializeDataTable() {
-            let selectedLimit = $('#transactionLimit').find(':selected').val()
+        function initializeTransactionTable() {
+            let selectedDate = localStorage.getItem('date') || '2000-01-01';
+            let selectedLimit = $('#transactionLimit').find(':selected').val();
             let radioValue = $("input[id='btnsales']:checked").val();
-            let trade = radioValue == 'on' ? 'sales' : 'purchases'
-            if(selectedDate==''||selectedDate == null){
-            selectedDate = '2000-01-01'
-            }
-            var _this = $('.transaction_view_warning')
+            let trade = radioValue === 'on' ? 'sales' : 'purchases';
+
+            let _this = $('.transaction_view_warning');
             $('.err-msg').remove();
-            var el = $('<div>')
-            el.addClass("alert alert-danger err-msg")
-            el.hide()
-            
-            var url = trade == 'sales' ? "{% url 'accounts:sales_list' %}" : "{% url 'accounts:purchases_list' %}";
-            // AJAX request to fetch transactions based on the selected date
+            let el = $('<div>').addClass("alert alert-danger err-msg").hide();
+
+            let url = trade === 'sales' ? "{% url 'accounts:sales_list' %}" : "{% url 'accounts:purchases_list' %}";
+
             $.ajax({
                 url: url,
                 type: 'GET',
-                data: {'date': selectedDate,
-                        'user_id':{{user_id}},
-                        'limit':selectedLimit,
-                        },
+                data: {
+                    'date': selectedDate,
+                    'user_id': {{ user_id }},
+                    'limit': selectedLimit
+                },
                 dataType: 'json',
                 success: function (data) {
-                    // Clear existing transaction list
-                    if (data.status == 'success'){
-
-                            $('#transactionList').empty();
-
-                            // Populate the transaction list with the fetched data
-                            var transactionHtml = '<table class="display cell-border" style="width:100%" id="transaction-tbl">';
-                            transactionHtml += '<thead><tr><th>bill#</th><th>Date</th><th>#</th><th>Name</th><th>Description</th><th>Amount</th><th>Discount</th><th>Action</th></tr></thead>';
-                            transactionHtml += '<tbody>';
-                            
-                            $.each(data.transaction_data, function (index, transaction) {
-                                transactionHtml += '<tr id="tbl-row">';
-                                if(transaction.bill_number){
-                                transactionHtml += '<td>' + (transaction.bill_number) + '</td>';
-
-                                }else{
-
-                                transactionHtml += '<td> N/A </td>';
+                    if (data.status === 'success') {
+                        $('#transactionList').empty();
+        
+                        // Populate the transaction list with the fetched data using template literals
+                        let transactionHtml = `
+                        <table class="display cell-border" style="width:100%" id="transaction-tbl">
+                            <thead>
+                                <tr>
+                                    <th>bill#</th>
+                                    <th>Date</th>
+                                    <th>#</th>
+                                    <th>Name</th>
+                                    <th>Description</th>
+                                    <th>Amount</th>
+                                    <th>Discount</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                        `;
+        
+                        $.each(data.transaction_data, function (index, transaction) {
+                            transactionHtml += `
+                            <tr id="tbl-row">
+                                <td>${transaction.bill_number ? transaction.bill_number : 'N/A'}</td>
+                                <td>${transaction.date}</td>
+                                <td>${index + 1}</td>
+                                <td>${transaction.party}</td>
+                                <td>${transaction.description}</td>
+                                <td>${transaction.debit}</td>
+                                <td>${transaction.discount}</td>
+                                <td>
+                                    <div class="dropdown">
+                                        <button class="btn btn-light btn-sm rounded-0 border dropdown-toggle" type="button" id="abtn" data-bs-toggle="dropdown" aria-expanded="false">Action</button>
+                                        <ul class="dropdown-menu" aria-labelledby="abtn">
+                                            <li><a class="dropdown-item edit-data-transaction" href="javascript:void(0)" data-url="/manage_sales_purchase/${transaction.id}"><i class="fa fa-pencil text-dark"></i>Edit</a></li>
+                                            <li><a class="dropdown-item delete-data-transaction" href="javascript:void(0)" data-url="/delete_transaction/${transaction.id}"><i class="fa fa-trash text-danger"></i> Delete</a></li>
+                                            <li><a class="dropdown-item print-data-transaction" href="javascript:void(0)" data-url="/print/${transaction.id}"><i class="fa fa-print text-primary"></i> Print</a></li>
+                                        </ul>
+                                    </div>
+                                </td>
+                            </tr>
+                        `;
+                        });
+        
+                        transactionHtml += `
+                            </tbody>
+                        </table>
+                        `;
+        
+                        // Append the entire HTML content after the loop
+                        $('#transactionList').append(transactionHtml);
+        
+                        // Initialize DataTable
+                        let dataTable = $('#transaction-tbl').DataTable({
+                            responsive: {
+                                details: {
+                                    type: 'column',
+                                    target: 'tr'
                                 }
-                                transactionHtml += '<td>'  +transaction.date+ '</td>';
-                                transactionHtml += '<td>' + (index+1) + '</td>';
-                                transactionHtml += '<td>'  +transaction.party+ '</td>';
-                                transactionHtml += '<td>' + transaction.description + '</td>';
-                                transactionHtml += '<td>' + transaction.debit + '</td>';
-                                transactionHtml += '<td>' + transaction.discount + '</td>';
-                                transactionHtml += '<td>' +
-                                            '<div class="dropdown">'+
-                                            '<button class="btn btn-light btn-sm rounded-0 border dropdown-toggle" type="button" id="abtn" data-bs-toggle="dropdown" aria-expanded="false">  Action </button>' +
-                                            '<ul class="dropdown-menu" aria-labelledby="abtn">' +
-                                            '<li><a class="dropdown-item edit-data-transaction" href="javascript:void(0)" data-url="/manage_sales_purchase/' + transaction.id + '"><i class="fa fa-pencil text-dark"></i>Edit</a></li>' +
-                                            '<li><a class="dropdown-item delete-data-transaction" href="javascript:void(0)" data-url="/delete_transaction/' + transaction.id + '"><i class="fa fa-trash text-danger"></i> Delete</a></li>' +
-                                            '<li><a class="dropdown-item print-data-transaction" href="javascript:void(0)" data-url="/print/'+ transaction.id +'"><i class="fa fa-print text-primary"></i> Print</a></li>' +
-                                            '</ul>' +
-                                            '</div>' +
-                                            '</td>';
-                                transactionHtml += '</tr>';
-                            });
-
-                            $('#tbl-row').after(transactionHtml);
-                            transactionHtml += '</tbody>';
-                            transactionHtml += '</table>';
-                            $('#transactionList').append(transactionHtml);
-                            // Append the entire HTML content after the loop
-                            var dataTable = $('#transaction-tbl').DataTable({
-                                responsive: {
-                                    details: {
-                                        type: 'column',
-                                        target: 'tr'
-                                    }
+                            },
+                            rowGroup: {
+                                dataSrc: 1
+                            },
+                            columnDefs: [
+                                { orderable: false, targets: [1, 2, 3, 4, 5, 6, 7] },
+                                { "width": "150px", "targets": 3 },
+                                { "width": "70px", "targets": 5 },
+                                { "width": "50px", "targets": 7 },
+                                { "width": "70px", "targets": 6 },
+                                { responsivePriority: 1, targets: 1 },
+                                { responsivePriority: 2, targets: -1 }
+                            ],
+                            order: [
+                                [1, 'desc'],
+                                [2, 'desc']
+                            ],
+                            paging: true
+                        });
+        
+                        // Hide certain columns
+                        dataTable.column(1).visible(false);
+                        dataTable.column(2).visible(false);
+        
+                        // Event listeners for edit, delete, and print actions
+                        $('#transactionList').off('click', '.edit-data-transaction').on('click', '.edit-data-transaction', function () {
+                            console.log('edit clicked')
+                            $('.transaction_view_warning').empty();
+                            let url = $(this).attr('data-url');
+                            $.ajax({
+                                url: url,
+                                method: 'GET',
+                                data: {
+                                    'user_id': {{ user_id }}
                                 },
-                                rowGroup: {
-                                    dataSrc: 1
+                                error: function () {
+                                    alert("An error occurred");
                                 },
-                                columnDefs: [
-                                    {
-                                        orderable: false,
-                                        targets: [1,2,3,4,5,6,7]
-                                    },
-                                    { "width": "150px", "targets": 3 }, // Set width for the first column
-                                    { "width": "70px", "targets": 5 }, // Set width for the second column
-                                    { "width": "50px", "targets": 7 },   // Set width for the third column
-                                    { "width": "70px", "targets": 6 },
-                                    { responsivePriority: 1, targets: 1 },
-                                    { responsivePriority: 2, targets: -1 },
-                                ],
-                                order: [
-                                    [1, 'desc'], 
-                                    [2, 'desc']   
-                                ],
-                                paging:true
-                            })
-                            var hideColumnIndex = 1;
-                            var column = dataTable.column(hideColumnIndex);
-                            column.visible(false); 
-                            var hide2ColumnIndex = 2;
-                            var column2 = dataTable.column(hide2ColumnIndex);
-                            column2.visible(false);
-                            $('#transactionList').off('click', '.edit-data-transaction').on('click', '.edit-data-transaction', function() {
-                                var _this = $('.transaction_view_warning')
-                                $('.err-msg').remove();
-                                var el = $('<div>')
-                                el.addClass("alert alert-danger err-msg")
-                                el.hide()
-                                $.ajax({
-                                    url: $(this).attr('data-url'),
-                                    method: 'GET',
-                                    data: {
-                                        'user_id': {{user_id}},
-                                    },
-                                    error: err =>{
-                                            alert("An error occured")
-                                        },
-                                    success: function(resp){
-                                        if(resp.status == 'success'){
-                                            $('#name').val(resp.transaction.party);
-                                            $('#description').val(resp.transaction.description);
-                                            $('#id').val(resp.transaction.id);
-                                            $('#date').val(resp.transaction.date);
-                                            $('#discount_amount').val(resp.transaction.discount);
-                                            $('#bill').val(resp.transaction.bill_number)
-                                            $('#charges').val(resp.transaction.charges)
-                                            $('#palydar').val(resp.transaction.palydar)
-                                            itemList = []
-                                            itemList = resp.transaction.items
-                                            
-                                            displayItemList()
-                                            initializeDataTable()
-                                            end_loader()
-                                        }else{
-                                            el.text(resp.msg);
-                                            _this.prepend(el)
-                                            el.show('slow')
-                                            $("html, body, .modal").scrollTop(0);
-                                            end_loader();
-                                            setTimeout(function(){
-                                            el.hide('slow')
-
-                                            },2000)
-                                        }
+                                success: function (resp) {
+                                    if (resp.status === 'success') {
+                                        $('#name').val(resp.transaction.party);
+                                        $('#description').val(resp.transaction.description);
+                                        $('#id').val(resp.transaction.id);
+                                        $('#date').val(resp.transaction.date);
+                                        $discountAmount.val(resp.transaction.discount);
+                                        $discountAmount.addClass('active')
+                                        $('#bill').val(resp.transaction.bill_number);
+                                        $('#charges').val(resp.transaction.charges);
+                                        $('#palydar').val(resp.transaction.palydar);
+                                        itemList = resp.transaction.items
+                                        displayItemList(itemList);
+                                        initializeTransactionTable();
+                                        updateTotal();
+                                        end_loader();
+                                        $name.focus()
+                                    } else {
+                                        el.text(resp.msg).show('slow').delay(2000).fadeOut('slow');
+                                        $("html, body, .modal").scrollTop(0);
+                                        end_loader();
                                     }
-                                });
+                                }
                             });
-                            $('#transactionList').on('click', '.delete-data-transaction',function() {
-                                $('#myModal').modal('hide');
-                                _conf("Are you sure to delete this Transaction?", 'delete_transaction', ["'" + $(this).attr('data-url') + "'"])
-                            })
-                            $('#transactionList').on('click', '.print-data-transaction',function() {
-                                window.open( $(this).attr('data-url'),'_open')
-                            })
-                    }else{
-                        el.text(data.msg);
-                        _this.prepend(el)
-                        el.show('slow')
-                        end_loader()
+                        });
 
+                        $('#transactionList').on('click', '.delete-data-transaction', function () {
+                            $('#myModal').modal('hide');
+                            _conf("Are you sure to delete this Transaction?", 'delete_transaction', [`"${$(this).attr('data-url')}"`]);
+                        });
+
+                        $('#transactionList').on('click', '.print-data-transaction', function () {
+                            window.open($(this).attr('data-url'), '_open');
+                        });
+
+                    } else {
+                        el.text(data.msg).show('slow').delay(2000).fadeOut('slow');
+                        end_loader();
                     }
-                    
                 },
-                error: function (error) {
-                    
+                error: function () {
+                    alert("An error occurred");
                 }
             });
         }
-
-        $.fn.dataTable.ext.search.push(
-            function (settings, data, dataIndex) {
-                var date = $('#date').val() ? new Date($('#date').val()) : null;
-                var transactionDate = new Date(data[1]); // assuming the date is in the 5th column
-
-                if ( date == null || transactionDate.setHours(0, 0, 0, 0) == date.setHours(0,0,0,0) ) {
-                    return true;
-                }
-
-                return false;
-            }
-        );
-        
-        $('.party-btn').on('click',function(){
-            name = $('#name').val()
-            if (name==""){
-                    var el = $('<div>')
-                        el.addClass("alert alert-danger err-msg")
-                        el.hide()
-                        el.text("Party cannot be empty");
-
-                        $('#transactionForm').prepend(el)
-                        el.show('slow')
-                        setTimeout(function(){
-                            el.hide('slow')
-
-                        },2000)      
-                return;
-            }
-            var formData = new FormData();
-            formData.append('user',$('#transactionForm input[name="user_id"]').val())
-            formData.append('name',$('#transactionForm input[name="name"]').val())
-            start_loader()
-            $.ajax({
-                headers: {
-                    "X-CSRFToken": '{{csrf_token}}'
-                },
-                url:"{% url 'accounts:save-party' %}",
-                data: formData,
-                cache: false,
-                contentType: false,
-                processData: false,
-                method: 'POST',
-                type: 'POST',
-                dataType: 'json',
-                error: err =>{
-                    alert("an error occured")
-                    end_loader()
-                },
-                success:function(resp){
-                if(resp.status =="success"){
-                        $('#partyList').append($("<option>").attr('value',name))
-                        var el = $('<div>')
-                        el.addClass("alert alert-success err-msg")
-                        el.hide()
-                        el.text("Party was created successfully");
-
-                        $('#transactionForm').prepend(el)
-                        el.show('slow')
-                        $('#description').focus();
-                        setTimeout(function(){
-                            el.hide('slow')
-
-                        },2000)      
-                        end_loader()
-                    }else{
-                        var el = $('<div>')
-                        el.addClass("alert alert-danger err-msg")
-                        el.hide()
-                        el.text("Party with this name already exists, check your recycle-bin");
-
-                        $('#transactionForm').prepend(el)
-                        el.show('slow')
-                        $('#description').focus();
-                        setTimeout(function(){
-                            el.hide('slow')
-
-                        },2000)      
-                        end_loader()
-                        
-                    }
-                }
-        })                
-        })
-        // Set the cursor on the name field when modal is opened
-        $('.product-btn').on('click',function(){
-            name  = $('#product').val()
-            if (name==""){
-                        var el = $('<div>')
-                        el.addClass("alert alert-danger err-msg")
-                        el.hide()
-                        el.text("Product cannot be empty");
-
-                        $('#transactionForm').prepend(el)
-                        el.show('slow')
-                        setTimeout(function(){
-                            el.hide('slow')
-
-                        },2000)      
-                return;
+        function initializeForm() {
+            let selectedform = localStorage.getItem('selectedRadio') || 'btnsales'; // Default to 'btnsales' if nothing is stored
+            $date.val(localStorage.getItem('date'))
+            if(selectedform=='btnsales'){
+                $bill.attr('disabled',true)
+            }else{
+                $bill.attr('disabled',false)
 
             }
-            start_loader()
-            $.ajax({
-                headers: {
-                    "X-CSRFToken": '{{csrf_token}}'
-                },
-                url:"{% url 'accounts:save-product' %}",
-                data:JSON.stringify({
-                    "user_id":{{user_id}},
-                    "name": name
-                }),
-                method:'POST',
-                error: err =>{
-                    alert("an error occured")
-                    end_loader()
-                },
-                success:function(resp){
-                    $('#productList').append($("<option>").attr('value',name))
-                    var el = $('<div>')
-                    el.addClass("alert alert-success err-msg")
-                    el.hide()
-                    el.text(resp.msg);
-
-                $('.warning').prepend(el)
-                el.show('slow')
-                $('#quantity').focus();
-                setTimeout(function(){
-                    el.hide('slow')
-
-                },2000)      
-                end_loader()
-                }
-            })
-        })
-    });
-
-    function delete_transaction(url) {
-        var date = $('#date').val()
-            var _this = $('#confirm_modal .modal-body')
-            $('.err-msg').remove();
-            var el = $('<div>')
-            el.addClass("alert alert-danger err-msg")
-            el.hide()
-            start_loader()
-            $.ajax({
-                headers: {
-                    "X-CSRFToken": "{{csrf_token}}"
-                },
-                url: url,
-                dataType: 'JSON',
-                error: err => {
-                    alert("an error occurred.")
-                    end_loader()
-                },
-                success: function(resp) {
-                    if (resp.status == 'success') {
-                        location.reload()
-                    } else if (!!resp.msg) {
-                        el.html(resp.msg)
-                        _this.prepend(el)
-                        el.show()
-                    } else {
-                        $('#confirm_modal').modal('hide');
-                        $.ajax({
-                            url: "{% url 'accounts:manage-sales-purchase'  %}",
-                            method: 'GET',
-                            data: {
-                                'user_id': {{user_id}},
-                            },
-                            error: err =>{
-                                    alert("An error occured")
-                                },
-                            success: function(resp){
-                                if(resp){
-                                    
-                                    $('#myModal .modal-body').html(resp)
-                                    
-                                    $('myModal').modal({
-                                        backdrop:'static',
-                                        keyboard:false,
-                                        focus:true
-                                    })
-                                    $("#myModal").modal('show')
-                                    end_loader()
-                                }
-                            }
-                        });
-                        el.html("An error occurred")
-                        _this.prepend(el)
-                        el.show()
-                    }
-                    end_loader()
-                }
-
-            })
+            itemList=[]
+            displayItemList(itemList)
+            
+            $name.val(''); $description.val(''); $id.val('');
+            $bill.val('');$('#palydar').val('');$total.val(0)
+            $charges.val(0); $discountAmount.val(0); $discountPercent.val(0);$name.focus();
         }
-
-</script>
+    })
