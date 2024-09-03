@@ -217,7 +217,7 @@
             layout: {
                     topStart: {
                         buttons: [
-                        {
+                        {% comment %} {
                             extend: 'print',
                             title: '',
                             autoPrint: true,
@@ -225,18 +225,19 @@
                                 $(win.document.body).find('th:last-child').text('Received');
                                 $(win.document.body).find('td:last-child').empty();
                             }
-                        },
+                        }, {% endcomment %}
                         {
                                 extend: 'pdfHtml5',
                                 title:"",
                                 exportOptions: {
-                                    columns: [ 0, 1, 2, 3,4 ],
+                                    columns: [ 1, 2, 3,4 ],
                              
 
                                 },
                                 customize: function (doc) {
                                     doc.styles['table'] = {alignment:'center'};
-                                    doc.content[0].table.widths = [ '5%',  '25%', '25%', '18%','15%','12%'];
+                                    doc.pageMargins = [20,0,20,30];
+                                    doc.content[0].table.widths = [  '30%', '25%', '18%','15%','12%'];
                                     processDoc(doc);
                                    addExtraColumn(doc);
                                     doc.content[0].layout = 'lightHorizontalLines'  

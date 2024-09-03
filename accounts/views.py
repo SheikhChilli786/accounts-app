@@ -49,7 +49,7 @@ def user_detail(request, pk=None):
             options.append(('product','Product')) if (request.user.has_perm('accounts.add_product') or request.user == user) else None
             options.append(('manage_transactions','Manage Transactions')) if (request.user.has_perm('accounts.can_manage_transactions') or request.user == user) else None
             options.append(('manage_s_p','Manage Sale/purchases')) if (request.user.has_perm('accounts.can_manage_s_p') or request.user == user) else None 
-            options.append(('manage_conversion','Conversion Form'))  
+            options.append(('manage_conversion','Conversion Form'))  if (request.user.has_perm('accounts.view_conversion') or request.user == user) else None
         else:
             return redirect('accounts:user-detail')
     else:
@@ -62,7 +62,7 @@ def user_detail(request, pk=None):
         options.append(('product','Product')) if (request.user.has_perm('accounts.add_product') or request.user == user) else None
         options.append(('manage_transactions','Manage Transactions')) if (request.user.has_perm('accounts.can_manage_transactions') or request.user == user) else None
         options.append(('manage_s_p','Manage Sale/purchases')) if (request.user.has_perm('accounts.can_manage_s_p') or request.user == user) else None
-        options.append(('manage_conversion','Conversion Form')) 
+        options.append(('manage_conversion','Conversion Form'))  if (request.user.has_perm('accounts.view_conversion') or request.user == user) else None
     context['options'] = options
     return render(request,'accounts/party.html',context)
 
@@ -887,6 +887,7 @@ def products(request,pk=None):
             options.append(('parties','Parties')) if (request.user.has_perm('accounts.add_party') or request.user == user) else None
             options.append(('manage_transactions','Manage Transactions')) if (request.user.has_perm('accounts.can_manage_transactions') or request.user == user) else None
             options.append(('manage_s_p','Manage Sale/purchases')) if (request.user.has_perm('accounts.can_manage_s_p') or request.user == user) else None 
+            options.append(('manage_conversion','Conversion Form'))  if (request.user.has_perm('accounts.view_conversion') or request.user == user) else None
 
         else:
             return redirect("/products/")
@@ -899,6 +900,7 @@ def products(request,pk=None):
         options.append(('parties','Parties')) if (request.user.has_perm('accounts.add_party') or request.user == user) else None
         options.append(('manage_transactions','Manage Transactions')) if request.user.has_perm('accounts.can_manage_transactions' or request.user == user) else None
         options.append(('manage_s_p','Manage Sale/purchases')) if request.user.has_perm('accounts.can_manage_s_p' or request.user == user) else None
+        options.append(('manage_conversion','Conversion Form'))  if (request.user.has_perm('accounts.view_conversion') or request.user == user) else None
     context['options'] = options
     return render(request,"accounts/products.html",context)
 

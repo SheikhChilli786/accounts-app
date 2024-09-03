@@ -76,7 +76,7 @@
                 layout: {
                     topStart: {
                         buttons: [
-                            {
+                            {% comment %} {
                                 extend: 'print',
                                 title:'',
                                 autoPrint: true,
@@ -119,7 +119,7 @@
                                 lastTr.after('<tr><td style="text-align:right; border: 1px solid #000;">' + firstTdValue + '</td></tr>');
                                 }
                                 
-                            },
+                            }, {% endcomment %}
                            {
                                 extend: 'pdfHtml5',
                                 title:"{{party.name}}",
@@ -206,6 +206,7 @@
                         ]  
                 }}, 
                 paging:true,
+                pageLength:25,
                 order: [[4, 'asc']],
                 responsive: {
                     details: {

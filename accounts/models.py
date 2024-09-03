@@ -70,7 +70,7 @@ class Transaction(models.Model):
     charges = models.PositiveIntegerField(default=0)
     is_sales = models.BooleanField(null=True,blank=True)
     conversion = models.ForeignKey('Conversion',on_delete=models.CASCADE,null=True,blank=True)
-
+    pallydar = models.CharField(max_length=255,null=True,blank=True)
     def __str__(self):
         return self.party.name  
     

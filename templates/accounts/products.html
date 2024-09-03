@@ -65,7 +65,7 @@
             layout: {
                     topStart: {
                         buttons: [
-                        {
+                        {% comment %} {
                             extend: 'print',
                             title: '',
                             autoPrint: true,
@@ -73,7 +73,7 @@
                                 $(win.document.body).find('th:last-child').text('Received');
                                 $(win.document.body).find('td:last-child').empty();
                             }
-                        },
+                        }, {% endcomment %}
                         {
                                 extend: 'pdfHtml5',
                                 title:"",
