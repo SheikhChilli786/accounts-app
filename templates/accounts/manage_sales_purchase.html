@@ -283,347 +283,252 @@
 </body>
 <script>
 $(document).ready(function () {
-    var final_amount = 0;
-       // Cache the radio buttons selector
-    var $radioButtons = $("input[type='radio'][name='btnradio']");
-    $('#transactionLimit').on('change',function(){
-        initializeDataTable()
-    })
+let final_amount = 0;
+const $radioButtons = $("input[type='radio'][name='btnradio']");
+const $bill = $("#bill");
+const $name = $('#name');
+const $description = $('#description');
+const $id = $('#id');
+const $submit = $('#submit');
+const $charges = $('#charges');
+const $addPrice = $('#addPrice');
+const $discountAmount = $('#discount_amount');
+const $price = $('#price');
+const $quantity = $('#quantity');
+const $product = $('#product');
+const $discountPercent = $('#discount_percent');
+const $total = $('#total');
+const $date = $('#date');
 
-    // Define the function to handle button state
-    function button_sales_purchase() {
-        var radioValue = $("input[id='btnsales']:checked").val();
-        if (radioValue === "on"){
-            $("#bill").prop("disabled", true);
-             $('#name').val('')
-            $('#description').val('')
-            $('#id').val("")
-            $('#submit').val("")
-            $('#charges').val('')
-            bill = $("#bill")
-            bill.val('');
+$('#transactionLimit').on('change', initializeDataTable);
 
-        }else{
-            bill = $("#bill")
-            bill.prop("disabled", false);
-            bill.val('');
-             $('#name').val('')
-            $('#description').val('')
-            $('#id').val("")
-            $('#submit').val("")
-            $('#charges').val('')
-            itemList = []
-            displayItemList()
-        }
-        initializeDataTable()
+function button_sales_purchase() {
+    const radioValue = $("input[id='btnsales']:checked").val();
+    if (radioValue === "on") {
+        $bill.prop("disabled", true).val('');
+        $name.val('');
+        $description.val('');
+        $id.val("");
+        $submit.val("");
+        $charges.val('');
+    } else {
+        $bill.prop("disabled", false).val('');
+        $name.val('');
+        $description.val('');
+        $id.val("");
+        $submit.val("");
+        $charges.val('');
+        itemList = [];
+        displayItemList();
     }
-    $("input[type='text']").on("focus", function() { 
-            $(this).select(); 
+    initializeDataTable();
+}
+
+$("input[type='text'], input[type='number']").on("focus", function() {
+    $(this).select();
+});
+
+$radioButtons.on('change', button_sales_purchase);
+
+// Initialize button state
+$().button('toggle');
+
+let itemList = [];
+
+function handleKeyDown(e, selector, keyCodes, focusElement, preventDefault = false, clickElement = null) {
+    if (keyCodes.includes(e.which)) {
+        if (preventDefault) e.preventDefault();
+        $(focusElement).focus();
+        if (clickElement) $(clickElement).click();
+    }
+}
+
+$addPrice.on('keydown', function(e) {
+    handleKeyDown(e, this, [9], '#addTransaction');
+});
+
+$discountAmount.on('keydown', function(e) {
+    handleKeyDown(e, this, [9], '#addPrice');
+});
+
+$price.on('keydown', function(e) {
+    handleKeyDown(e, this, [37], '#quantity');
+    handleKeyDown(e, this, [13], null, true, '#addPrice');
+});
+
+$quantity.on('keydown', function(e) {
+    handleKeyDown(e, this, [37], '#product');
+    handleKeyDown(e, this, [39], '#price');
+    handleKeyDown(e, this, [13], null, true, '#price');
+});
+
+$description.on('keydown', function(e) {
+    handleKeyDown(e, this, [38], '#name');
+});
+
+$product.on('keydown', function(e) {
+    handleKeyDown(e, this, [37], '#description');
+    handleKeyDown(e, this, [39], '#quantity');
+    handleKeyDown(e, this, [13], '#quantity', true);
+});
+
+$name.on('keydown', function(e) {
+    handleKeyDown(e, this, [37], '#date');
+    handleKeyDown(e, this, [39], '#description');
+    handleKeyDown(e, this, [13], '#description', true);
+});
+
+$charges.on('input', function() {
+    let chargesValue = parseFloat($(this).val()) || 0;
+    if (chargesValue < 0) {
+        $(this).val(0);
+        chargesValue = 0;
+    }
+    $total.val(parseFloat(final_amount + chargesValue - parseFloat($discountAmount.val() || 0)));
+});
+
+$discountPercent.on('input', function() {
+    let discountValue = parseFloat($(this).val()) || 0;
+    if (discountValue > 100) {
+        $(this).val(100);
+        discountValue = 100;
+    } else if (discountValue < 0) {
+        $(this).val(0);
+        discountValue = 0;
+    }
+    const discountAmount = (final_amount / 100) * discountValue;
+    $discountAmount.val(discountAmount.toFixed(4));
+    $total.val((final_amount - discountAmount).toFixed(4));
+});
+
+$discountAmount.on('input', function() {
+    let discountValue = parseFloat($(this).val()) || 0;
+    if (discountValue > final_amount) {
+        $(this).val(final_amount);
+        discountValue = final_amount;
+    } else if (discountValue < 0 || final_amount === 0) {
+        $(this).val(0);
+        discountValue = 0;
+    }
+    $discountPercent.val(((discountValue / final_amount) * 100).toFixed(4));
+    $total.val((final_amount - discountValue + parseFloat($charges.val()) || 0).toFixed(4));
+});
+
+$addPrice.click(function () {
+    const el = $('<div>').addClass("alert alert-danger err-msg").hide();
+    const productName = $product.val().trim();
+    const quantity = parseInt($quantity.val().trim());
+    const price = parseFloat($price.val().trim());
+    let productExists = false;
+
+    if (productName && quantity && price >= 0) {
+        if (quantity < 1) {
+            showWarning(el, "Please enter quantity greater than 0", $product);
+            return;
+        }
+
+        $('#productList option').each(function () {
+            if ($(this).val().toLowerCase() === productName.toLowerCase()) {
+                productExists = true;
+                return false;
+            }
         });
-    $("input[type='number']").on("focus", function() { 
-            $(this).select(); 
-        });
-    // Attach change event listener to radio buttons
-    $radioButtons.on('change', button_sales_purchase);
 
-    // Initialize button state
+        if (!productExists) {
+            showWarning(el, "Product not found in the list.", $product);
+            return;
+        }
 
-    
-    $().button('toggle');
-    var itemList = [];
-    $('#addPrice').on('keydown',function(e) {
-        if(e.which==9){
-            $('#addTransaction').focus();
+        if (price < 0) {
+            showWarning(el, "Please enter price greater than 0", $product);
+            return;
         }
-    })
-    $('#discount_amount').on('keydown',function(e) {
-        if(e.which==9){
-            $('#addPrice').focus();
-        }
-    })
-    $('#price').on('keydown',function(e) {
-        if(e.which == 37){
-            $("#quantity").focus()
-        }
-        if(e.which == 13){
-            e.preventDefault()
-            $('#addPrice').click()
-        }
-        
-    })
-    $('#quantity').on('keydown',function(e) {
-        if(e.which == 37){
-            $("#product").focus()
-        }
-        if(e.which == 39){
-            $("#price").focus()
-        }
-        if(e.which == 13){
-            e.preventDefault()
-            $('#price').focus()
-        }
-        
-    })
-    $('#description').on('keydown',function(e) {
-        if(e.which == 38){
-            $("#name").focus()
-        }
-        
-        
-    })
-    $('#product').on('keydown',function(e) {
-        
-        if(e.which == 37){
-            $("#description").focus()
-        }
-        if(e.which == 39){
-            $("#quantity").focus()
-        }
-        if(e.which == 13){
-            if($(this).val()!==""){
-            e.preventDefault()
-            $('#quantity').focus()
-            }
-        }
-        
-    })
-    $('#name').on('keydown',function(e) {
-        
-        if(e.which == 37){
-            $("#date").focus()
-        }
-        if(e.which == 39){
-            $("#description").focus()
-        }
-        if(e.which == 13){
-            e.preventDefault()
-            $('#description').focus()
-        }
-        
-    })
-    $('#charges').on('input',function(){
-        let enteredValue =  $(this).val()
-        if (enteredValue){
-            var chargesValue = parseFloat(enteredValue)
 
-        }else{
-            var chargesValue = 0
-        }
-        if(chargesValue<0 ){
-            $(this).val(0)
-            chargesValue=0
-        }
-        
-        $('#total').val(parseFloat(final_amount+chargesValue-$('#discount_amount').val()))
-    })
-    $('#discount_percent').on('input',function(e) {
-        var enteredValue = $(this).val();
+        const existingItemIndex = itemList.findIndex(item => 
+            item.productName.toLowerCase() === productName.toLowerCase() && item.price === price
+        );
 
-        // Parse the entered value to a float
-        var discountValue = parseFloat(enteredValue);
-
-        // Check if the entered value is greater than 100
-        if (discountValue > 100) {
-            // If value exceeds 100, set the value to 100
-            $(this).val(100);
-          
-        }
-        if(discountValue < 0){
-            $(this).val(0);
-            discountValue = 0
-        }
-        discount_amount = $('#discount_amount')
-        discount_amount.val(parseFloat(final_amount/100 * discountValue).toFixed(4))
-        $('#total').val(parseFloat(final_amount-discount_amount.val()).toFixed(4))
-    })
-    $('#discount_amount').on('input',function(){
-        var enteredValue = $(this).val();
-        if(enteredValue)
-            var discountValue = parseFloat(enteredValue)
-        else
-            var discountValue = 0
-        if(discountValue  > final_amount){
-            $(this).val(final_amount);
-        }
-        if(discountValue  < 0 || final_amount == 0){
-            $(this).val(0);
-
-        }
-        discount_percent = $('#discount_percent').val(parseFloat(($(this).val()/final_amount * 100)).toFixed(4))
-        $('#total').val(parseFloat(final_amount-$(this).val()+(parseFloat($('#charges').val())?parseFloat($('#charges').val()):0)).toFixed(4))
-    })
-    
-    // Event listener for the "Add Price" button click
-    $('#addPrice').click(function () {
-        // Get values from the input fields
-        
-        var el = $('<div>')
-        el.addClass("alert alert-danger err-msg")
-        el.hide()
-        let productName = $("#product").val().trim();
-        
-        var quantity = $('#quantity').val().trim();
-        var price = $('#price').val().trim();
-        let productExists = false;
-
-        // Validate if all necessary fields are filled
-        if (productName && quantity && price) {
-            if(quantity<1){
-                el.text("Please enter quantity greater then 0");
-                $('.warning').prepend(el)
-                el.show('slow')
-                $('#product').focus();
-                setTimeout(function(){
-                    el.hide('slow')
-
-                },2000)      
-                    return;
-            }
-            $('#productList option').each(function () {
-                if ($(this).val().toLowerCase() === productName.toLowerCase()) {
-                    productExists = true;
-                    return false; // Break the loop
-                }
-            });
-
-            if (!productExists) {
-                el.text("Product not found in the list.")
-                $('.warning').prepend(el)
-                el.show('slow')
-                $('#product').focus();
-                setTimeout(function(){
-                    el.hide('slow')
-
-                },2000)      
-                    return;
-            }
-            if(price<0){
-                el.text("Please enter price greater then 0");
-                $('.warning').prepend(el)
-                el.show('slow')
-                $('#product').focus();
-                setTimeout(function(){
-                    el.hide('slow')
-
-                },2000)      
-                    return;
-            }
-            var existingItemIndex = itemList.findIndex(function(item) {
-                return item.productName.toLowerCase() === productName.toLowerCase() && item.price === parseInt(price);
-            });
-            if (existingItemIndex !== -1) {
-                // If the item exists, update its quantity
-                itemList[existingItemIndex].quantity += parseInt(quantity);
-                itemList[existingItemIndex].total += parseInt(quantity)*parseInt(price)
-            } else {
-            // Create an object with product details
-                var item = {
-                    productName: productName,
-                    quantity: parseInt(quantity),
-                    price: parseInt(price),
-                    total: quantity*price,
-                };
-                // Push the item object into the itemList array
-                itemList.unshift(item);
-            }
-            // Clear input fields after adding the item
-            $('#product').val('');
-            $('#quantity').val('');
-            $('#price').val('');
-             displayItemList();
-            // Call function to display the itemList in the HTML table
-            $('#product').focus()
+        if (existingItemIndex !== -1) {
+            itemList[existingItemIndex].quantity += quantity;
+            itemList[existingItemIndex].total += quantity * price;
         } else {
-            el.text("Please enter a valid record")
-            $('.warning').prepend(el)
-                el.show('slow')
-                $('#product').focus();
-                setTimeout(function(){
-                    el.hide('slow')
-
-                },2000)      
-            var emptyField = $('.add-item input').filter(function () {
-                return $(this).val().trim() === "";
-            }).first();
-
-            // Move cursor to the empty field
-            emptyField.focus();
-            // Give notice beneath the empty field
-
+            itemList.unshift({ productName, quantity, price, total: quantity * price });
         }
-    });
-    
-    // Function to display the itemList in the HTML table
-    function displayItemList() {
-        // Clear existing table content except the header row
-        $('#itemTable tbody').empty();
-        var table = $('#itemTable').DataTable();
-        var total = 0;
-        table.clear()
-        // Iterate over each item in the itemList array
-        itemList.forEach(function (item, index) {
-            // Create a new row for the item in the table
-                table.row.add([
-                    table.rows().count() + 1,
-                    item.productName,
-                    item.quantity,
-                    item.price,
-                    item.total,
-                    '<div class="dropdown">'+
-                    '<button class="btn btn-light btn-sm rounded-0 border dropdown-toggle" type="button" id="abtn" data-bs-toggle="dropdown" aria-expanded="false">  Action </button>'+
-                    '<ul class="dropdown-menu" aria-labelledby="abtn">' +
-                    '<li><a class="dropdown-item edit-item" href="javascript:void(0)" data-index="' + index + '"><i class="fa fa-pencil text-dark"></i>Edit</a></li>' +
-                    '<li><a class="dropdown-item delete-item" href="javascript:void(0)" data-index="' + index + '"><i class="fa fa-trash text-danger"></i> Delete</a></li>' +
-                    '</ul>' +
-                    '</div>' 
-                ]).draw(false);
-            
 
-            total += item.total
-            // Append the row to the table body
-            
-        });
-        final_amount = total
-        $('#total').val(final_amount)
-        $('#discount_amount').trigger('input');
-        $('#charges').trigger('input');
-        $('.edit-item').on('pointerdown',function () {
-            var index = $(this).data('index');
-            item = itemList.splice(index,1);
-            $('#product').val(item[0].productName)
-            $('#quantity').val(item[0].quantity)
-            $('#price').val(item[0].price)
-            displayItemList()
-        })
-
-        
-        $('.delete-item').on('pointerdown',function () {
-            // Get the index of the item to be deleted
-            var index = $(this).data('index');
-            // Remove the item from the itemList array
-            itemList.splice(index, 1);
-
-            // Re-display the updated itemList
-            displayItemList();
-        });
+        $product.val('');
+        $quantity.val('');
+        $price.val('');
+        displayItemList();
+        $product.focus();
+    } else {
+        showWarning(el, "Please enter a valid record", $product);
+        $('.add-item input').filter(function () {
+            return $(this).val().trim() === "";
+        }).first().focus();
     }
-    $('#toggleTransactions').click(function () {
+});
+
+function showWarning(el, message, focusElement) {
+    el.text(message);
+    $('.warning').prepend(el);
+    el.show('slow');
+    focusElement.focus();
+    setTimeout(() => el.hide('slow'), 2000);
+}
+
+function displayItemList() {
+    $('#itemTable tbody').empty();
+    const table = $('#itemTable').DataTable();
+    table.clear();
+    let total = 0;
+
+    itemList.forEach((item, index) => {
+        table.row.add([
+            table.rows().count() + 1,
+            item.productName,
+            item.quantity,
+            item.price,
+            item.total,
+            `<div class="dropdown">
+                <button class="btn btn-light btn-sm rounded-0 border dropdown-toggle" type="button" id="abtn" data-bs-toggle="dropdown" aria-expanded="false">  Action </button>
+                <ul class="dropdown-menu" aria-labelledby="abtn">
+                    <li><a class="dropdown-item edit-item" href="javascript:void(0)" data-index="${index}"><i class="fa fa-pencil text-dark"></i>Edit</a></li>
+                    <li><a class="dropdown-item delete-item" href="javascript:void(0)" data-index="${index}"><i class="fa fa-trash text-danger"></i> Delete</a></li>
+                </ul>
+            </div>`
+        ]).draw(false);
+
+        total += item.total;
+    });
+
+    final_amount = total;
+    $total.val(final_amount);
+    $discountAmount.trigger('input');
+    $charges.trigger('input');
+
+    $('.edit-item').on('pointerdown', function () {
+        const index = $(this).data('index');
+        const item = itemList.splice(index, 1)[0];
+        $product.val(item.productName);
+        $quantity.val(item.quantity);
+        $price.val(item.price);
+        displayItemList();
+    });
+
+    $('.delete-item').on('pointerdown', function () {
+        const index = $(this).data('index');
+        itemList.splice(index, 1);
+        displayItemList();
+    });
+}
+
+$('#toggleTransactions').click(function () {
         var container = $('#transactionListContainer');
-        var button = $(this);
-
-        if (container.is(':visible')) {
-            // Hide the transaction list container with a slide-up animation
-            container.slideUp('slow', function () {
-                button.text('View Recent Transactions');
-            });
-        } else {
-            // Show the transaction list container with a slide-down animation
-            container.slideDown('slow', function () {
-                button.text('Hide Transactions');
-            });
-        }
+        var isVisible = container.is(':visible');
+        container.slideToggle('slow', function () {
+            $('#toggleTransactions').text(isVisible ? 'View Recent Transactions' : 'Hide Transactions');
+        });
     });
-
         
         $('#myModal').off('shown.bs.modal').on('shown.bs.modal', function () {
             $('#date').val(localStorage.getItem('date'));
@@ -814,10 +719,10 @@ $(document).ready(function () {
         }
         
         function initializeDataTable() {
-             var selectedDate = localStorage.getItem('date')
-             var selectedLimit = $('#transactionLimit').find(':selected').val()
-            var radioValue = $("input[id='btnsales']:checked").val();
-            var trade = radioValue == 'on' ? 'sales' : 'purchases'
+            let selectedDate = localStorage.getItem('date')
+            let selectedLimit = $('#transactionLimit').find(':selected').val()
+            let radioValue = $("input[id='btnsales']:checked").val();
+            let trade = radioValue == 'on' ? 'sales' : 'purchases'
             if(selectedDate==''||selectedDate == null){
             selectedDate = '2000-01-01'
             }
