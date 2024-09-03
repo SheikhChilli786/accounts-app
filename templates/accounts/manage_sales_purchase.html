@@ -166,7 +166,7 @@
 
         <div class="col">
             <label for="date">Date:</label>
-            <input type="date" name='date'  class="form-control" value="{{transaction.form.created_at}}" id="date" required>
+            <input type="date" name='date'  class="form-control" value="" id="date" required>
         </div>
         <div class="col-sm-6">
             <label for="party" class="control-label">Party:</label>
@@ -531,7 +531,6 @@ $('#toggleTransactions').click(function () {
     });
         
         $('#myModal').off('shown.bs.modal').on('shown.bs.modal', function () {
-            $('#date').val(localStorage.getItem('date'));
             button_sales_purchase()
             $('#itemTable').DataTable({
                 searching:false,
@@ -559,7 +558,6 @@ $('#toggleTransactions').click(function () {
         });
         
         $('#date').on('input', function () {
-            localStorage.setItem('date', $(this).val());
             initializeDataTable()
         })
 
@@ -647,7 +645,6 @@ $('#toggleTransactions').click(function () {
                     },
                     success: function(resp) {
                         if (typeof resp === 'object' && resp.status === 'success') {
-                            $('#date').val(localStorage.getItem('date'));
                 
                             initializeDataTable()
                             end_loader();
@@ -719,7 +716,6 @@ $('#toggleTransactions').click(function () {
         }
         
         function initializeDataTable() {
-            let selectedDate = localStorage.getItem('date')
             let selectedLimit = $('#transactionLimit').find(':selected').val()
             let radioValue = $("input[id='btnsales']:checked").val();
             let trade = radioValue == 'on' ? 'sales' : 'purchases'
