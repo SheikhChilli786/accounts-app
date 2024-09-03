@@ -337,7 +337,7 @@
             updateTotal();
         })
         $date.on('change',function(){
-            localStorage.setItem('date',(this).val())
+            localStorage.setItem('date',$(this).val())
             initializeTransactionTable();
         })
         $discountAmount.on('input',function(){
