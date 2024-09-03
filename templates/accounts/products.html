@@ -138,13 +138,12 @@
         });
             
     })
-    $('.edit-data-prod').click(function() {
-        uni_modal("<i class='fa fa-edit'></i> Edit Product Details", $(this).attr('data-url'))
-    })
-    $('.delete-data-prod').click(function() {
-            _conf("Are you sure to delete this Product?", 'delete_product', ["'" + $(this).attr('data-url') + "'"])
-        })
-        
+    $('#product-tbl').on('click', '.edit-data-prod', function() {
+        uni_modal("<i class='fa fa-edit'></i> Edit Product Details", $(this).attr('data-url'));
+    });
+$('#product-tbl').on('click', '.delete-data-prod', function() {
+        _conf("Are you sure to delete this Product?", 'delete_product', ["'" + $(this).attr('data-url') + "'"]);
+    });        
 
         function delete_product(url) {
 
