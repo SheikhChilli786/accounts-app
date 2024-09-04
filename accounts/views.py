@@ -666,8 +666,8 @@ def save_trade(request):
                         ]
                         TradeItem.objects.bulk_create(trade_items)
                         resp['msg'] = "Updated Sale Successfully"
-                except Exception:
-                    resp['msg'] = f"Couldn't Update Sale"
+                except Exception as e:
+                    resp['msg'] = f"Couldn't Update Sale {e}"
                     return JsonResponse(resp)
             if (state == 'off' and trade[0].is_sales == False) and (request.user.is_superuser or user == request.user  or  (user.assigned_staff.user if hasattr(user.assigned_staff, 'user') else None==request.user and request.user.has_perm('accounts.can_change_purchase'))):
                 state_off = True
@@ -682,7 +682,7 @@ def save_trade(request):
                         for item in items:
                                 product = products.filter(name=item['productName'])
                                 product.update(quantity=F('quantity')+item['quantity'])
-                        trade.update(party=party,description=description,debit=(total if validate_total() else calc_total),form=form_obj,discount=discount,is_sales=False,charges=charges,bill=bill,pallydar=palydar)
+                        trade.update(party=party,description=description,debit=(total if validate_total() else calc_total),form=form_obj,discount=discount,is_sales=False,charges=charges,bill_number=bill,pallydar=palydar)
                         trade_items = [
                             TradeItem(
                                 trade=trade[0],
@@ -693,8 +693,8 @@ def save_trade(request):
                         ]
                         TradeItem.objects.bulk_create(trade_items)                        
                     resp['msg'] = "Updated Purchase Successfully"
-                except Exception:
-                    resp['msg'] = "COuldn't update purchase"
+                except Exception as e:
+                    resp['msg'] = f"COuldn't update purchase {e}"
                     return JsonResponse(resp)
             if state == "on" and not state_on:
                 resp['msg'] = "You dont have authorization to update sale"
@@ -749,7 +749,7 @@ def save_trade(request):
                             )  for item in items
                         ]
                         TradeItem.objects.bulk_create(trade_items)
-                    
+                    resp['transaction_id'] = trade.pk
                     resp['msg'] = "Created new Sale successfully"
                 except:
                     resp['msg'] = "Couldn't Create new Sale"
@@ -775,7 +775,7 @@ def save_trade(request):
                                     resp['msg'] = f"Couldn't update inventory of {item['productName']}"
                                     return JsonResponse(resp)
                         TradeItem.objects.bulk_create(trade_items)
-
+                        resp['transaction_id'] = trade.pk
                         resp['msg'] = "Created new Purchase Successfully"
                 except Exception:
                     resp['msg'] = "Couldn't Create new Purchase"
