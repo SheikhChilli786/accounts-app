@@ -330,6 +330,11 @@
         $("input[type='text'], input[type='number']").on("focus", function () {
             $(this).select();
         });
+        $('#transactionForm input').on('keypress', function (e) {
+            if (e.which === 13) {
+                e.preventDefault();
+            }
+        });
         $charges.on('input',function(){
             if($(this).val()==''||$(this).val()<0){
                 $(this).val(0)
@@ -822,7 +827,7 @@
             displayItemList(itemList)
             
             $name.val(''); $description.val(''); $id.val('');
-            $bill.val('');$('#palydar').val('');$total.val(0)
+            $bill.val('');$('#palydar').val('');$total.val(0);$discountAmount.removeClass('active');$discountPercent.removeClass('active');
             $charges.val(0); $discountAmount.val(0); $discountPercent.val(0);$name.focus();
         }
     })
