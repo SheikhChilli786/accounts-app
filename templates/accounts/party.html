@@ -99,32 +99,6 @@
 {% endblock pageContent %} {% block ScriptBlock %}
 <script>
     $(function() {
-         $('#new_form_manage_s_p').click(function(){
-            $.ajax({
-                url: "{% url 'accounts:manage-sales-purchase'  %}",
-                method: 'GET',
-                data: {
-                    'user_id': {{user.id}},
-                },
-                error: err =>{
-                        alert("An error occured")
-                    },
-                success: function(resp){
-                    if(resp){
-                        
-                        $('#myModal .modal-body').html(resp)
-                        
-                        $('#uni_modal').modal({
-                            backdrop:'static',
-                            keyboard:false,
-                            focus:true
-                        })
-                        $("#myModal").modal('show')
-                        end_loader()
-                    }
-                }
-            });
-        })
          $('#new_form_manage_transactions').click(function(){
             $.ajax({
                 url: "{% url 'accounts:manage-transaction'  %}",
