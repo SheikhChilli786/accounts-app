@@ -218,8 +218,7 @@
 
             <div class="col">
                 <label for="quantity">Quantity:</label>
-                <input type="number" name="quantity" class="form-control" id="quantity" value="" min="1" step="1"
-                    default="0">
+                <input type="number" name="quantity" class="form-control" id="quantity" value="" min="1" step="1" default="0">
             </div>
             <div class="col">
                 <label for="price">Price:</label>
@@ -374,7 +373,7 @@
         $addPrice.click(function () {
             const el = $('<div>').addClass("alert alert-danger err-msg").hide();
             const productName = $product.val().trim();
-            const quantity = parseInt($quantity.val().trim());
+            const quantity = parseFloat($quantity.val().trim());
             const price = parseFloat($price.val().trim());
             let productExists = false;
             if (productName && quantity>=0 && price >= 0) {
@@ -548,12 +547,12 @@
             $.each(itemList,function(index,item){
                 total += item.total
             })
-            total += parseInt($charges.val())
+            total += parseFloat($charges.val())
             let percentage_is_active = $discountPercent.hasClass('active') 
             let amount_is_active = $discountAmount.hasClass('active') 
             if (amount_is_active){
                 let discount_percent = (parseInt($discountAmount.val())/total)*100 
-                if(discount_percent>= parseInt($discountAmount.val())){
+                if(discount_percent>= 100){
                     $discountPercent.val(100)
                     total = 0
                     
@@ -835,3 +834,64 @@
             $charges.val(0); $discountAmount.val(0); $discountPercent.val(0);$name.focus();
         }
     })
+    function delete_transaction(url) {
+        var date = $('#date').val()
+            var _this = $('#confirm_modal .modal-body')
+            $('.err-msg').remove();
+            var el = $('<div>')
+            el.addClass("alert alert-danger err-msg")
+            el.hide()
+            start_loader()
+            $.ajax({
+                headers: {
+                    "X-CSRFToken": "{{csrf_token}}"
+                },
+                url: url,
+                dataType: 'JSON',
+                error: err => {
+                    alert("an error occurred.")
+                    end_loader()
+                },
+                success: function(resp) {
+                    if (resp.status == 'success') {
+                        location.reload()
+                    } else if (!!resp.msg) {
+                        el.html(resp.msg)
+                        _this.prepend(el)
+                        el.show()
+                    } else {
+                        $('#confirm_modal').modal('hide');
+                        $.ajax({
+                            url: "{% url 'accounts:manage-sales-purchase'  %}",
+                            method: 'GET',
+                            data: {
+                                'user_id': {{user_id}},
+                            },
+                            error: err =>{
+                                    alert("An error occured")
+                                },
+                            success: function(resp){
+                                if(resp){
+                                    
+                                    $('#myModal .modal-body').html(resp)
+                                    
+                                    $('myModal').modal({
+                                        backdrop:'static',
+                                        keyboard:false,
+                                        focus:true
+                                    })
+                                    $("#myModal").modal('show')
+                                    end_loader()
+                                }
+                            }
+                        });
+                        el.html("An error occurred")
+                        _this.prepend(el)
+                        el.show()
+                    }
+                    end_loader()
+                }
+
+            })
+        }
+    </script>

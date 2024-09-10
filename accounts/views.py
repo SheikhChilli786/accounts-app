@@ -14,6 +14,7 @@ from django.contrib.auth import update_session_auth_hash,logout,authenticate,log
 from django.contrib.auth.decorators import login_required
 from .models import *
 from .forms import *
+from decimal import Decimal
 # Create your views here.
 User = get_user_model()
 def context_data(request):
@@ -605,7 +606,7 @@ def save_trade(request):
             discount = 0
         calc_total =0
         for item in items:
-            calc_total += (item['quantity']*item['price']) 
+            calc_total += (float(item['quantity'])*float(item['price'])) 
             detail = detail + str(item['productName'])  +' (' + str(item['quantity'])+ 'x' +str(item['price']) + ')    ||   ' 
 
         calc_total = calc_total - int(discount) + int(charges)
@@ -721,12 +722,12 @@ def save_trade(request):
                                 try:
                                     with transaction.atomic():
                                         product = products.filter(name=item['productName'])
-                                        if product[0].quantity-item['quantity'] < 0:
+                                        if product[0].quantity - Decimal(item['quantity']) < 0:
                                             raise Exception
                                         else:
-                                            product.update(quantity=F('quantity')-item['quantity'])
-                                except:
-                                    resp['msg'] = f"Not enough {item['productName']} for this Sale"
+                                            product.update(quantity=F('quantity') - Decimal(item['quantity']))
+                                except Exception as e:
+                                    resp['msg'] = f"Not enough {item['productName']} for this Sale {e}"
                                     return JsonResponse(resp)
                                 
                         trade = Transaction.objects.create(

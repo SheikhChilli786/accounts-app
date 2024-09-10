@@ -46,7 +46,7 @@ class Form(models.Model):
 class Product(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.CASCADE)
     name = models.CharField(max_length=255)
-    quantity = models.BigIntegerField(default=0)
+    quantity = models.DecimalField(default=0,max_digits=10,decimal_places=2)
     delete_flag = models.IntegerField(default=0)
     def __str__(self) -> str:
         return self.name
@@ -112,8 +112,8 @@ class TradeItem(models.Model):
 
     trade = models.ForeignKey(Transaction,on_delete=models.CASCADE,related_name='trade_items') 
     product = models.ForeignKey(Product,on_delete=models.CASCADE)
-    quantity = models.PositiveIntegerField()
-    price = models.PositiveIntegerField()
+    quantity = models.DecimalField(max_digits=10,decimal_places=2)
+    price = models.DecimalField(max_digits=10,decimal_places=2)
     delete_flag = models.IntegerField(default=0)
     def __str__(self) -> str:
         return f"{self.trade} - {self.product}"
