@@ -15,6 +15,10 @@
        body.dt-print-view table td{
             text-align: right;
         }
+        .text-descripton{
+            text-transform: uppercase;
+            font-weight: bold;
+        }
     </style>
 
 </head>
@@ -56,7 +60,7 @@
                             <td>{{transaction.get_running_balance | credit_or_debit}}</td>
                             <td>{{transaction.credit | check_value}}</td>
                             <td>{{transaction.debit | check_value}}</td>
-                            <td style="overflow:ellipses;">{{transaction.detail | check_value}}</td>
+                            <td style="overflow:ellipses;"><span class='text-descripton'>{{transaction.description}}</span> - {{transaction.detail | check_value}}  </td>
                             <td>{{transaction.form.created_at}}</td>
                             
                         </tr>
@@ -180,12 +184,21 @@
                                     var length = doc.content[3].table.body.length
                                     var lastValue = doc.content[3].table.body[length-1][0].text
                                     var body = doc.content[3].table.body;
-                                    body.forEach(function(row) {
-                                                row[3] = {
-                                                    text: row[3].text,   // Retain the original text
-                                                    fontSize: 8,        // Set your desired font size
-                                                };
-                                            });                                    
+                                    body.forEach(function (row) {
+                                        var description = row[3].text || "";  // Assuming the description is in the 4th column (index 3)
+                                        var words = description.split(" ");
+                                        var firstWord = words.shift();  // Extract the first word
+                                        var remainingText = words.join(" ");
+
+                                        // Set the first word to bold and uppercase, and keep the remaining text
+                                        row[3] = {
+                                            text: [
+                                                { text: firstWord.toUpperCase() + " ", bold: true },  // Bold and uppercase first word
+                                                { text: remainingText }  // Rest of the description
+                                            ],
+                                            fontSize: 8,
+                                        };
+                                    });
                                     doc.content[3].table.body.push(Array(lastValue,"میذان","","",""))
                                     doc.content[3].layout = {
                                         hLineWidth: function (i, node) {
