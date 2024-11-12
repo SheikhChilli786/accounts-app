@@ -59,7 +59,7 @@ class Product(models.Model):
         unique_together = ['user','name']
 class Transaction(models.Model):
     party = models.ForeignKey(Party,on_delete=models.CASCADE)
-    description = models.TextField(blank=True,null=True)
+    description = models.TextField(max_length=1000,blank=True,null=True)
     debit = models.PositiveIntegerField(default=0)
     credit = models.PositiveIntegerField(default=0)
     time = models.TimeField(auto_now_add=True)
@@ -71,7 +71,7 @@ class Transaction(models.Model):
     is_sales = models.BooleanField(null=True,blank=True)
     conversion = models.ForeignKey('Conversion',on_delete=models.CASCADE,null=True,blank=True)
     pallydar = models.CharField(max_length=255,null=True,blank=True)
-    detail = models.CharField(max_length=510,default='',blank=True)
+    detail = models.CharField(max_length=1000,default='',blank=True)
     def __str__(self):
         return self.party.name  
     
